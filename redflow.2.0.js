@@ -2,22 +2,38 @@
 /* --------------------------------- RedFlow -------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-const RedFlow = (() =>
+function SS ()
 {
+    ; (function ()
+    {
+        console.log("This function runs automatically!")
+    })()
+}
+
+const ss = SS()
+ss()
+
+function RedFlow (name = "Redflow")
+{
+
+    if (window.onlyOneRedflow) return
+
+    window.onlyOneRedflow = (() =>
+    {
+        console.log("This function runs automatically!")
+        return { name };
+    })()
+
+
     const rf = {}
-    rf.log = {}
-    rf.lib = {}
     rf.API = {}
 
-    /* -------------------------------------------------------------------------- */
-    /*                                   helpers                                  */
-    /* -------------------------------------------------------------------------- */
-
-    // ------------------------------- Log Helpers
-
-    rf.log = (() =>
+    const run = (() =>
     {
-        "use strict"
+        if (window.rr) return console.log(name, "return because it already exist")
+        window.rr = true
+
+        let cacheCredit = false
 
         const creditInfo = {
             commentTop:
@@ -35,19 +51,23 @@ const RedFlow = (() =>
             ],
         }
 
-        let cacheCredit = false
+        if (cacheCredit) return
 
-        // ------------------------------- Internal API
+        document.body.prepend(document.createComment(creditInfo.commentTop))
+        document.body.appendChild(document.createComment(creditInfo.commentBottom))
+        console.log(creditInfo.logMessage, ...creditInfo.logStyle)
 
-        function credit ()
-        {
-            if (cacheCredit) return
-            document.body.prepend(document.createComment(creditInfo.commentTop))
-            document.body.appendChild(document.createComment(creditInfo.commentBottom))
-            console.log(creditInfo.logMessage, ...creditInfo.logStyle)
-            cacheCredit = true
-        }
+        cacheCredit = true
+    })()
 
+    /* -------------------------------------------------------------------------- */
+    /*                                   helpers                                  */
+    /* -------------------------------------------------------------------------- */
+
+    // ------------------------------- Log Helpers
+
+    rf.log = (() =>
+    {
         function error (context, message)
         {
             console.error(`💢 ERROR → ⭕ RedFlow → ${context} →`, message)
@@ -73,7 +93,7 @@ const RedFlow = (() =>
             console.debug(`🐞 DEBUG → ⭕ RedFlow → ${context} →`, message)
         }
 
-        return { credit, error, success, info, warn, debug }
+        return { error, success, info, warn, debug }
     })()
 
     // ------------------------------- Lib Helpers
@@ -142,8 +162,9 @@ const RedFlow = (() =>
 
     // ------------------------------ RedFlow
 
-    rf.log.credit()
-    rf.log.success("Components Library", "is running")
+    //rf.log.credit()
+    //rf.log.credit()
+    //rf.log.success("Components Library", "is running")
 
     /* -------------------------------------------------------------------------- */
     /*                                  Libraries                                 */
@@ -175,7 +196,7 @@ const RedFlow = (() =>
 
         attributeChangedCallback ()
         {
-            if (!this.#componentLoaded) return console.log('2 - attributeChangedCallback Failed')
+            if (!this.#componentLoaded) return console.log("2 - attributeChangedCallback Failed")
 
             console.log("++++")
             this.#render()
@@ -258,11 +279,11 @@ const RedFlow = (() =>
 
         #render ()
         {
-            this.#svgSource = this.getAttribute('svgSource')
+            this.#svgSource = this.getAttribute("svgSource")
             this.innerHTML = decodeURIComponent(this.#svgSource)
         }
     }
 
     customElements.define("redflow-marquee-a", Marquee_01)
     customElements.define("redflow-icon-a", Icon_01)
-})()
+}
