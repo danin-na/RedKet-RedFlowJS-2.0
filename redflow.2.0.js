@@ -158,7 +158,6 @@ const RedFlow = (() =>
         #slider = null
         #resizeHandler = null
 
-        #dependencyLoaded = false
         #componentLoaded = false
 
         static get observedAttributes ()
@@ -192,7 +191,6 @@ const RedFlow = (() =>
                 this.#slider = this.querySelector("[data-rf-items]")
                 this.appendChild(this.#slider.cloneNode(true))
 
-                this.#dependencyLoaded = true
                 this.#componentLoaded = true
 
                 this.#render()
@@ -244,5 +242,27 @@ const RedFlow = (() =>
         }
     }
 
+    class Icon_01 extends HTMLElement
+    {
+        #svgSource = null
+
+        constructor()
+        {
+            super()
+        }
+
+        connectedCallback ()
+        {
+            this.#render()
+        }
+
+        #render ()
+        {
+            this.#svgSource = this.getAttribute('svgSource')
+            this.innerHTML = decodeURIComponent(this.#svgSource)
+        }
+    }
+
     customElements.define("redflow-marquee-a", Marquee_01)
+    customElements.define("redflow-icon-a", Icon_01)
 })()
