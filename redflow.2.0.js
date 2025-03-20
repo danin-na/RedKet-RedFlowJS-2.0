@@ -3,249 +3,255 @@
 /* -------------------------------------------------------------------------- */
 function RedFlow ()
 {
+    // ------------- RedFlow init
 
-    // ------------- RedFlow Init
-
-    RedFlow.instance
-        ? (() => { throw new Error("You can have only one instance of RedFlow") })()
-        : (RedFlow.instance = this)
-
-        ; (() =>
-        {
-            const creditInfo = {
-                commentTop:
-                    "⭕ RedFlow - Official Webflow Library by RedKet © 2025 RedKet.\n All rights reserved. Unauthorized copying, modification, or distribution is prohibited.\n Visit: www.RedKet.com | www.Red.Ket",
-                commentBottom:
-                    "⭕ RedFlow | OFFICIAL WEBFLOW LIBRARY BY REDKET © 2025 REDKET | WWW.REDKET.COM | WWW.RED.KET",
-                logMessage: `%cRed%cFlow%c - Official Webflow Library by %cRed%cKet%c\nCopyright © 2025 RedKet. All rights reserved.\nUnauthorized copying, modification, or distribution is prohibited.\nVisit: www.RedKet.com | www.Red.Ket`,
-                logStyle: [
-                    "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                    "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                    "color:#aaa; background:#000; padding:2px 4px; border-radius:3px;",
-                    "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                    "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                    "color:#888; font-size:11px;",
-                ],
-            }
-            document.body.prepend(document.createComment(creditInfo.commentTop))
-            document.body.appendChild(document.createComment(creditInfo.commentBottom))
-            console.log(creditInfo.logMessage, ...creditInfo.logStyle)
-        })()
-
-    /*
-    const rf = {}
-    rf.API = {}
-
-    rf.log = (() =>
+    RedFlow.instance = (() =>
     {
-        function error (context, message)
-        {
-            console.error(`💢 ERROR → ⭕ RedFlow → ${context} →`, message)
-        }
 
-        function success (context, message)
-        {
-            console.log(`✅ SUCCESS → ⭕ RedFlow → ${context} →`, message)
-        }
+        if (RedFlow.instance) throw new Error("You can have only one instance of RedFlow")
 
-        function info (context, message)
-        {
-            console.info(`❔ INFO → ⭕ RedFlow → ${context} →`, message)
+        const creditInfo = {
+            commentTop:
+                "⭕ RedFlow - Official Webflow Library by RedKet © 2025 RedKet.\n All rights reserved. Unauthorized copying, modification, or distribution is prohibited.\n Visit: www.RedKet.com | www.Red.Ket",
+            commentBottom:
+                "⭕ RedFlow | OFFICIAL WEBFLOW LIBRARY BY REDKET © 2025 REDKET | WWW.REDKET.COM | WWW.RED.KET",
+            logMessage: `%cRed%cFlow%c - Official Webflow Library by %cRed%cKet%c\nCopyright © 2025 RedKet. All rights reserved.\nUnauthorized copying, modification, or distribution is prohibited.\nVisit: www.RedKet.com | www.Red.Ket`,
+            logStyle: [
+                "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
+                "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
+                "color:#aaa; background:#000; padding:2px 4px; border-radius:3px;",
+                "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
+                "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
+                "color:#888; font-size:11px;",
+            ],
         }
+        document.body.prepend(document.createComment(creditInfo.commentTop))
+        document.body.appendChild(document.createComment(creditInfo.commentBottom))
+        console.log(creditInfo.logMessage, ...creditInfo.logStyle)
 
-        function warn (context, message)
-        {
-            console.warn(`⚠️ WARN → ⭕ RedFlow → ${context} →`, message)
-        }
-
-        function debug (context, message)
-        {
-            console.debug(`🐞 DEBUG → ⭕ RedFlow → ${context} →`, message)
-        }
-
-        return { error, success, info, warn, debug }
+        return this
     })()
 
-    // ------------------------------- Lib Helpers
+}
 
-    rf.lib = (() =>
+const instance1 = RedFlow()
+// const instance2 = RedFlow()
+
+// ------------- RedFlow log
+
+/*
+const rf = {}
+rf.API = {}
+
+rf.log = (() =>
+{
+    function error (context, message)
     {
-        "use strict"
+        console.error(`💢 ERROR → ⭕ RedFlow → ${context} →`, message)
+    }
 
-        const cdn = {
-            gsap: "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/gsap.min.js",
-            jquery: "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js",
-        }
+    function success (context, message)
+    {
+        console.log(`✅ SUCCESS → ⭕ RedFlow → ${context} →`, message)
+    }
 
-        const cacheScript = {}
+    function info (context, message)
+    {
+        console.info(`❔ INFO → ⭕ RedFlow → ${context} →`, message)
+    }
 
-        function loadScript (url)
-        {
-            if (cacheScript[url]) return cacheScript[url]
-            if (document.querySelector(`script[src="${url}"]`)) {
-                cacheScript[url] = Promise.resolve()
-                return cacheScript[url]
-            }
-            if (!document.querySelector(`link[rel="preload"][href="${url}"]`)) {
-                const link = document.createElement("link")
-                link.rel = "preload"
-                link.href = url
-                link.as = "script"
-                document.head.appendChild(link)
-            }
-            cacheScript[url] = new Promise((resolve) =>
-            {
-                const script = document.createElement("script")
-                script.src = url
-                script.defer = true
-                script.onload = () =>
-                {
-                    rf.log.success(url, "Loaded")
-                    resolve()
-                }
-                script.onerror = () =>
-                {
-                    rf.log.error(url, "Failed to load")
-                    resolve()
-                }
-                document.head.appendChild(script)
-            })
+    function warn (context, message)
+    {
+        console.warn(`⚠️ WARN → ⭕ RedFlow → ${context} →`, message)
+    }
+
+    function debug (context, message)
+    {
+        console.debug(`🐞 DEBUG → ⭕ RedFlow → ${context} →`, message)
+    }
+
+    return { error, success, info, warn, debug }
+})()
+
+// ------------------------------- Lib Helpers
+
+rf.lib = (() =>
+{
+    "use strict"
+
+    const cdn = {
+        gsap: "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/gsap.min.js",
+        jquery: "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js",
+    }
+
+    const cacheScript = {}
+
+    function loadScript (url)
+    {
+        if (cacheScript[url]) return cacheScript[url]
+        if (document.querySelector(`script[src="${url}"]`)) {
+            cacheScript[url] = Promise.resolve()
             return cacheScript[url]
         }
-
-        // ------------------------------ Internal API
-
-        function load (libs)
-        {
-            const promises = libs.map((lib) =>
-            {
-                if (cdn[lib]) return loadScript(cdn[lib])
-                if (lib.startsWith("http")) return loadScript(lib)
-                rf.log.warn(lib, "Unknown library requested")
-                return Promise.resolve()
-            })
-            return Promise.all(promises)
+        if (!document.querySelector(`link[rel="preload"][href="${url}"]`)) {
+            const link = document.createElement("link")
+            link.rel = "preload"
+            link.href = url
+            link.as = "script"
+            document.head.appendChild(link)
         }
+        cacheScript[url] = new Promise((resolve) =>
+        {
+            const script = document.createElement("script")
+            script.src = url
+            script.defer = true
+            script.onload = () =>
+            {
+                rf.log.success(url, "Loaded")
+                resolve()
+            }
+            script.onerror = () =>
+            {
+                rf.log.error(url, "Failed to load")
+                resolve()
+            }
+            document.head.appendChild(script)
+        })
+        return cacheScript[url]
+    }
 
-        return { load }
-    })()
+    // ------------------------------ Internal API
 
-    class Marquee_01 extends HTMLElement
+    function load (libs)
     {
-        // Private fields
-        #tween = null
-        #tweenProg = null
-
-        #slider = null
-        #resizeHandler = null
-
-        #componentLoaded = false
-
-        static get observedAttributes ()
+        const promises = libs.map((lib) =>
         {
-            console.log("0 - new Attr")
-            return ["ease", "direction", "duration"]
-        }
+            if (cdn[lib]) return loadScript(cdn[lib])
+            if (lib.startsWith("http")) return loadScript(lib)
+            rf.log.warn(lib, "Unknown library requested")
+            return Promise.resolve()
+        })
+        return Promise.all(promises)
+    }
 
-        constructor()
+    return { load }
+})()
+
+class Marquee_01 extends HTMLElement
+{
+    // Private fields
+    #tween = null
+    #tweenProg = null
+
+    #slider = null
+    #resizeHandler = null
+
+    #componentLoaded = false
+
+    static get observedAttributes ()
+    {
+        console.log("0 - new Attr")
+        return ["ease", "direction", "duration"]
+    }
+
+    constructor()
+    {
+        super()
+        console.log("1 - constructor")
+        this.#resizeHandler = () => this.#render()
+    }
+
+    attributeChangedCallback ()
+    {
+        if (!this.#componentLoaded) return console.log("2 - attributeChangedCallback Failed")
+
+        console.log("++++")
+        this.#render()
+    }
+
+    connectedCallback ()
+    {
+        rf.lib.load(["gsap"]).then(() =>
         {
-            super()
-            console.log("1 - constructor")
-            this.#resizeHandler = () => this.#render()
-        }
+            console.log("3 - constructor GSAP Loaded")
+            console.log("4 - connectedCallback")
 
-        attributeChangedCallback ()
-        {
-            if (!this.#componentLoaded) return console.log("2 - attributeChangedCallback Failed")
+            this.#slider = this.querySelector("[data-rf-items]")
+            this.appendChild(this.#slider.cloneNode(true))
 
-            console.log("++++")
+            this.#componentLoaded = true
+
             this.#render()
-        }
+            window.addEventListener("resize", this.#resizeHandler)
+        })
+    }
 
-        connectedCallback ()
-        {
-            rf.lib.load(["gsap"]).then(() =>
-            {
-                console.log("3 - constructor GSAP Loaded")
-                console.log("4 - connectedCallback")
+    disconnectedCallback ()
+    {
+        console.log("----")
+        window.removeEventListener("resize", this.#resizeHandler)
 
-                this.#slider = this.querySelector("[data-rf-items]")
-                this.appendChild(this.#slider.cloneNode(true))
-
-                this.#componentLoaded = true
-
-                this.#render()
-                window.addEventListener("resize", this.#resizeHandler)
-            })
-        }
-
-        disconnectedCallback ()
-        {
-            console.log("----")
-            window.removeEventListener("resize", this.#resizeHandler)
-
-            if (this.#tween) {
-                this.#tween.progress(0).kill()
-                this.#tween = null
-            }
-        }
-
-        #render ()
-        {
-            console.log("5 - render")
-            if (this.#tween) {
-                this.#tweenProg = this.#tween.progress()
-                this.#tween.progress(0).kill()
-            }
-
-            const sliders = this.querySelectorAll("[data-rf-items]")
-
-            const ease = this.getAttribute("ease") || "none"
-            const duration = parseFloat(this.getAttribute("duration")) || 30
-            const direction = this.getAttribute("direction") || "left"
-
-            const width = sliders[0].getBoundingClientRect().width
-            const xFrom = direction === "left" ? 0 : -width
-            const xTo = direction === "left" ? -width : 0
-
-            this.#tween = gsap.fromTo(
-                sliders,
-                { x: xFrom },
-                {
-                    x: xTo,
-                    duration,
-                    ease,
-                    repeat: -1,
-                }
-            )
-
-            this.#tween.progress(this.#tweenProg)
+        if (this.#tween) {
+            this.#tween.progress(0).kill()
+            this.#tween = null
         }
     }
 
-    class Icon_01 extends HTMLElement
+    #render ()
     {
-        #svgSource = null
-
-        constructor()
-        {
-            super()
+        console.log("5 - render")
+        if (this.#tween) {
+            this.#tweenProg = this.#tween.progress()
+            this.#tween.progress(0).kill()
         }
 
-        connectedCallback ()
-        {
-            this.#render()
-        }
+        const sliders = this.querySelectorAll("[data-rf-items]")
 
-        #render ()
-        {
-            this.#svgSource = this.getAttribute("svgSource")
-            this.innerHTML = decodeURIComponent(this.#svgSource)
-        }
+        const ease = this.getAttribute("ease") || "none"
+        const duration = parseFloat(this.getAttribute("duration")) || 30
+        const direction = this.getAttribute("direction") || "left"
+
+        const width = sliders[0].getBoundingClientRect().width
+        const xFrom = direction === "left" ? 0 : -width
+        const xTo = direction === "left" ? -width : 0
+
+        this.#tween = gsap.fromTo(
+            sliders,
+            { x: xFrom },
+            {
+                x: xTo,
+                duration,
+                ease,
+                repeat: -1,
+            }
+        )
+
+        this.#tween.progress(this.#tweenProg)
     }
-
-    customElements.define("redflow-marquee-a", Marquee_01)
-    customElements.define("redflow-icon-a", Icon_01)
-
-    */
 }
+
+class Icon_01 extends HTMLElement
+{
+    #svgSource = null
+
+    constructor()
+    {
+        super()
+    }
+
+    connectedCallback ()
+    {
+        this.#render()
+    }
+
+    #render ()
+    {
+        this.#svgSource = this.getAttribute("svgSource")
+        this.innerHTML = decodeURIComponent(this.#svgSource)
+    }
+}
+
+customElements.define("redflow-marquee-a", Marquee_01)
+customElements.define("redflow-icon-a", Icon_01)
+
+*/
