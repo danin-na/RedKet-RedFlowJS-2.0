@@ -1,3 +1,8 @@
+<audio controls>
+  <source src="youraudio.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
 You can achieve the same result as your `Icon_01` class in several ways using modern JavaScript, moving away from the traditional class-based approach. Here are the most common and effective alternatives, along with explanations and trade-offs:
 
 **1.  A Single Function (Most Straightforward)**
