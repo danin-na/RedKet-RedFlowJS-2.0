@@ -1,70 +1,40 @@
 /* -------------------------------------------------------------------------- */
 /* --------------------------------- RedFlow -------------------------------- */
 /* -------------------------------------------------------------------------- */
-
-function SS ()
-{
-    ; (function ()
-    {
-        console.log("This function runs automatically!")
-    })()
-}
-
-const ss = SS()
-ss()
-
-function RedFlow (name = "Redflow")
+function RedFlow ()
 {
 
-    if (window.onlyOneRedflow) return
+    // ------------- RedFlow Init
 
-    window.onlyOneRedflow = (() =>
-    {
-        console.log("This function runs automatically!")
-        return { name };
-    })()
+    RedFlow.instance
+        ? (() => { throw new Error("You can have only one instance of RedFlow") })()
+        : (RedFlow.instance = this)
 
+        ; (() =>
+        {
+            const creditInfo = {
+                commentTop:
+                    "⭕ RedFlow - Official Webflow Library by RedKet © 2025 RedKet.\n All rights reserved. Unauthorized copying, modification, or distribution is prohibited.\n Visit: www.RedKet.com | www.Red.Ket",
+                commentBottom:
+                    "⭕ RedFlow | OFFICIAL WEBFLOW LIBRARY BY REDKET © 2025 REDKET | WWW.REDKET.COM | WWW.RED.KET",
+                logMessage: `%cRed%cFlow%c - Official Webflow Library by %cRed%cKet%c\nCopyright © 2025 RedKet. All rights reserved.\nUnauthorized copying, modification, or distribution is prohibited.\nVisit: www.RedKet.com | www.Red.Ket`,
+                logStyle: [
+                    "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
+                    "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
+                    "color:#aaa; background:#000; padding:2px 4px; border-radius:3px;",
+                    "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
+                    "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
+                    "color:#888; font-size:11px;",
+                ],
+            }
+            document.body.prepend(document.createComment(creditInfo.commentTop))
+            document.body.appendChild(document.createComment(creditInfo.commentBottom))
+            console.log(creditInfo.logMessage, ...creditInfo.logStyle)
+        })()
 
+    /*
     const rf = {}
     rf.API = {}
-
-    const run = (() =>
-    {
-        if (window.rr) return console.log(name, "return because it already exist")
-        window.rr = true
-
-        let cacheCredit = false
-
-        const creditInfo = {
-            commentTop:
-                "⭕ RedFlow - Official Webflow Library by RedKet © 2025 RedKet.\n All rights reserved. Unauthorized copying, modification, or distribution is prohibited.\n Visit: www.RedKet.com | www.Red.Ket",
-            commentBottom:
-                "⭕ RedFlow | OFFICIAL WEBFLOW LIBRARY BY REDKET © 2025 REDKET | WWW.REDKET.COM | WWW.RED.KET",
-            logMessage: `%cRed%cFlow%c - Official Webflow Library by %cRed%cKet%c\nCopyright © 2025 RedKet. All rights reserved.\nUnauthorized copying, modification, or distribution is prohibited.\nVisit: www.RedKet.com | www.Red.Ket`,
-            logStyle: [
-                "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#aaa; background:#000; padding:2px 4px; border-radius:3px;",
-                "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#888; font-size:11px;",
-            ],
-        }
-
-        if (cacheCredit) return
-
-        document.body.prepend(document.createComment(creditInfo.commentTop))
-        document.body.appendChild(document.createComment(creditInfo.commentBottom))
-        console.log(creditInfo.logMessage, ...creditInfo.logStyle)
-
-        cacheCredit = true
-    })()
-
-    /* -------------------------------------------------------------------------- */
-    /*                                   helpers                                  */
-    /* -------------------------------------------------------------------------- */
-
-    // ------------------------------- Log Helpers
 
     rf.log = (() =>
     {
@@ -159,16 +129,6 @@ function RedFlow (name = "Redflow")
 
         return { load }
     })()
-
-    // ------------------------------ RedFlow
-
-    //rf.log.credit()
-    //rf.log.credit()
-    //rf.log.success("Components Library", "is running")
-
-    /* -------------------------------------------------------------------------- */
-    /*                                  Libraries                                 */
-    /* -------------------------------------------------------------------------- */
 
     class Marquee_01 extends HTMLElement
     {
@@ -286,4 +246,6 @@ function RedFlow (name = "Redflow")
 
     customElements.define("redflow-marquee-a", Marquee_01)
     customElements.define("redflow-icon-a", Icon_01)
+
+    */
 }
