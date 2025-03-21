@@ -7,22 +7,20 @@ function RedFlow ()
 
     RedFlow.instance = (() =>
     {
-
-        if (RedFlow.instance) throw new Error("You can have only one instance of RedFlow")
+        if (RedFlow.instance) throw new Error('You can have only one instance of RedFlow')
 
         const creditInfo = {
             commentTop:
-                "⭕ RedFlow - Official Webflow Library by RedKet © 2025 RedKet.\n All rights reserved. Unauthorized copying, modification, or distribution is prohibited.\n Visit: www.RedKet.com | www.Red.Ket",
-            commentBottom:
-                "⭕ RedFlow | OFFICIAL WEBFLOW LIBRARY BY REDKET © 2025 REDKET | WWW.REDKET.COM | WWW.RED.KET",
+                '⭕ RedFlow - Official Webflow Library by RedKet © 2025 RedKet.\n All rights reserved. Unauthorized copying, modification, or distribution is prohibited.\n Visit: www.RedKet.com | www.Red.Ket',
+            commentBottom: '⭕ RedFlow | OFFICIAL WEBFLOW LIBRARY BY REDKET © 2025 REDKET | WWW.REDKET.COM | WWW.RED.KET',
             logMessage: `%cRed%cFlow%c - Official Webflow Library by %cRed%cKet%c\nCopyright © 2025 RedKet. All rights reserved.\nUnauthorized copying, modification, or distribution is prohibited.\nVisit: www.RedKet.com | www.Red.Ket`,
             logStyle: [
-                "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#aaa; background:#000; padding:2px 4px; border-radius:3px;",
-                "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#888; font-size:11px;",
+                'color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#aaa; background:#000; padding:2px 4px; border-radius:3px;',
+                'color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#888; font-size:11px;',
             ],
         }
         document.body.prepend(document.createComment(creditInfo.commentTop))
@@ -32,16 +30,20 @@ function RedFlow ()
         return this
     })()
 
+    const rf = { log: {}, lib: {} }
 }
 
-const instance1 = RedFlow()
-// const instance2 = RedFlow()
+try {
+    const instance1 = RedFlow()
+    const instance2 = RedFlow()
+} catch (e) {
+    console.warn(e)
+}
 
 // ------------- RedFlow log
 
 /*
 const rf = {}
-rf.API = {}
 
 rf.log = (() =>
 {
