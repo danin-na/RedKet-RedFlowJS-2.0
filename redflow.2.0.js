@@ -163,29 +163,23 @@ function RedFlow ()
             this.#anim_close_duration = parseFloat(this.getAttribute('anim_close_duration') ?? this.#anim_close_duration)
             this.#anim_close_ease = this.getAttribute('anim_close_ease') ?? this.#anim_close_ease
 
-            gsap.set(this, { autoAlpha: 1, y: this.#anim_close_y, x: this.#anim_close_x })
-
-            console.log('api open', this.#api_code_to_open)
-            console.log('api close', this.#api_code_to_close)
+            this.#_render()
         }
 
         connectedCallback () { }
 
         disconnectedCallback () { }
 
-        handleTrigger (key)
+
+        #_render ()
         {
-            console.log('🔥')
-            if (key === this.#api_code_to_open) {
-                console.log('🟥')
-                this.open()
-            } else if (key === this.#api_code_to_close) {
-                console.log('🟨')
-                this.close()
-            }
+            gsap.set(this, { autoAlpha: 1, y: this.#anim_close_y, x: this.#anim_close_x })
+
+            console.log('api open', this.#api_code_to_open)
+            console.log('api close', this.#api_code_to_close)
         }
 
-        open ()
+        #open ()
         {
             gsap.to(this, {
                 autoAlpha: 1,
@@ -196,7 +190,7 @@ function RedFlow ()
             })
         }
 
-        close ()
+        #close ()
         {
             gsap.to(this, {
                 autoAlpha: 0,
@@ -206,6 +200,18 @@ function RedFlow ()
                 duration: this.#anim_close_duration,
             })
         }
+
+        #destroy () { }
+
+        api (key)
+        {
+            if (key === this.#api_code_to_open) {
+                this.open()
+            } else if (key === this.#api_code_to_close) {
+                this.close()
+            }
+        }
+
     }
 
     const modal = document.getElementById('myModal')

@@ -10,7 +10,20 @@ RedFlow 2.0 is undergoing a major upgrade, embracing Web Components as its core 
 
 ---
 
-[🎙️ Listen to the project explanation](./reflow-guides/redflow.wav)
+# how Redflow works with webflow and web component
+
+<!-- SVG Example -->
+<img src="./guieds/modal-01/daigram.svg" alt="Example SVG demonstrating how Redflow works" />
+
+---
+
+[🎙️ Listen to the project explanation](./guieds/redflow.wav)
+
+<audio controls>
+  <source src="./guieds/redflow.wav" type="audio/wav">
+  Your browser does not support the audio element.
+</audio>
+
 
 You can achieve the same result as your `Icon_01` class in several ways using modern JavaScript, moving away from the traditional class-based approach. Here are the most common and effective alternatives, along with explanations and trade-offs:
 
