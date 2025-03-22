@@ -241,8 +241,8 @@ function RedFlow ()
     class Trigger_01 extends HTMLElement
     {
         // Private properties
-        #event_types = ['click']
-        #api_type = 'open'
+        #event_Type = ['click']
+        #target_api = 'open'
         #target_sync = null
 
         constructor()
@@ -251,18 +251,18 @@ function RedFlow ()
             const e = this
 
             const eventsAttr = e.getAttribute('rf-event-type')
-            e.#event_types = eventsAttr
+            e.#event_Type = eventsAttr
                 ? eventsAttr.split(',').map(ev => ev.trim()).filter(Boolean)
-                : e.#event_types
+                : e.#event_Type
 
-            e.#api_type = e.getAttribute('rf-api-type') || e.#api_type
+            e.#target_api = e.getAttribute('rf-api-type') || e.#target_api
             e.#target_sync = e.getAttribute('rf-sync-get') || null
 
-            e.#event_types.forEach(eventType =>
+            e.#event_Type.forEach(eventType =>
             {
                 e.addEventListener(eventType, () =>
                 {
-                    document.querySelector(`[rf-sync="${e.#target_sync}"]`).api(e.#api_type)
+                    document.querySelector(`[rf-sync="${e.#target_sync}"]`).api(e.#target_api)
                 })
             })
         }
@@ -275,48 +275,18 @@ function RedFlow ()
         api (command)
         {
             if (command === 'trigger') {
-                document.querySelector(`[rf-sync="${this.#target_sync}"]`).api(this.#api_type)
+                document.querySelector(`[rf-sync="${this.#target_sync}"]`).api(this.#target_api)
             }
         }
     }
 
-    customElements.define('trigger-01', Trigger_01)
+
 
 
     rf.lib.load(['gsap']).then(() =>
     {
         customElements.define('redflow-modal-01', Modal_01)
-        customElements.define('trigger-01', Trigger_01)
-
-        // get the event type fro this.rf-event-type
-        const event_type = "click" // || or soothing else
-        const api_type = 'open' // get the api type fro this.rf-api-type
-        document.getElementById('openBtn').addEventListener(`'${event_type}'`, () =>
-        {
-            const target_sync = this.getAttribute('rf-sync-get')
-            document.querySelector(`[rf-sync="${target_sync}"]`).api(api_type)
-        })
-
-        document.getElementById('closeBtn').addEventListener('click', function ()
-        {
-            //const key = this.getAttribute('data-sync')
-            const targetElement = document.querySelector(`[rf-sync="RedFlow-sync-xxxx-xxxx"]`)
-            targetElement.api('close')
-        })
-
-        document.getElementById('openBtnHover').addEventListener('mouseenter', function ()
-        {
-            //const key = this.getAttribute('data-sync')
-            const targetElement = document.querySelector(`[rf-sync="RedFlow-sync-xxxx-xxxx"]`)
-            targetElement.api('open')
-        })
-
-        document.getElementById('closeBtnHover').addEventListener('mouseenter', function ()
-        {
-            //const key = this.getAttribute('data-sync')
-            const targetElement = document.querySelector(`[rf-sync="RedFlow-sync-xxxx-xxxx"]`)
-            targetElement.api('close')
-        })
+        customElements.define('redflow-trigger-01', Trigger_01)
     })
 }
 
