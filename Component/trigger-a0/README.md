@@ -3,7 +3,7 @@
 
 The **Trigger_01** component is a lightweight custom HTML element designed to trigger actions on other components (e.g., modals, tooltips, dropdowns) through events such as clicks, hovers, or keyboard interactions.
 
-![Trigger Diagram](path/to/trigger-diagram.svg)
+![Trigger Diagram](./trigger-01-diagram.svg)
 
 ---
 
