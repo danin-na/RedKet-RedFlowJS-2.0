@@ -17,7 +17,7 @@ RedFlow 2.0 is undergoing a major upgrade, embracing Web Components as its core 
 
 ---
 
-[🎙️ Listen to the project explanation](./guieds/redflow.wav)
+[🎙️ Listen to the project explanation](./modal-01/modal-01-daigram.svg)
 
 You can achieve the same result as your `Icon_01` class in several ways using modern JavaScript, moving away from the traditional class-based approach. Here are the most common and effective alternatives, along with explanations and trade-offs:
 
