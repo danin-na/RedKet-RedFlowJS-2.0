@@ -132,38 +132,45 @@ function RedFlow ()
         return { load }
     })()
 
-    class Modal_ab02 extends HTMLElement
+    class Modal_01 extends HTMLElement
     {
         //
-        #anim_open_x = 100
-        #anim_open_y = 0
-        #anim_open_duration = 0.1
-        #anim_open_ease = 'slow(0.7,0.7,false)'
+        #config_open_x = 100
+        #config_open_y = 0
+        #config_open_duration = 0.1
+        #config_open_ease = 'slow(0.7,0.7,false)'
         //
-        #anim_close_x = 0
-        #anim_close_y = 0
-        #anim_close_duration = 0.2
-        #anim_close_ease = 'slow(0.7,0.7,false)'
+        #config_close_x = 0
+        #config_close_y = 0
+        #config_close_duration = 0.2
+        #config_close_ease = 'slow(0.7,0.7,false)'
         //
         // api
-        #api_code_to_open = this.getAttribute('data-rf-api-code-to-open') ?? ''
-        #api_code_to_close = this.getAttribute('data-rf-api-code-to-close') ?? ''
+        #sync = ''
+        #api_open = ''
+        #api_close = ''
+        #api_destroy = ''
 
         constructor()
         {
             super()
 
-            this.#anim_open_x = parseFloat(this.getAttribute('anim_open_x') ?? this.#anim_open_x)
-            this.#anim_open_y = parseFloat(this.getAttribute('anim_open_y') ?? this.#anim_open_y)
-            this.#anim_open_duration = parseFloat(this.getAttribute('anim_open_duration') ?? this.#anim_open_duration)
-            this.#anim_open_ease = this.getAttribute('anim_open_ease') ?? this.#anim_open_ease
+            e.#sync = e.getAttribute('rf-sync') || null
 
-            this.#anim_close_x = parseFloat(this.getAttribute('anim_close_x') ?? this.#anim_close_x)
-            this.#anim_close_y = parseFloat(this.getAttribute('anim_close_y') ?? this.#anim_close_y)
-            this.#anim_close_duration = parseFloat(this.getAttribute('anim_close_duration') ?? this.#anim_close_duration)
-            this.#anim_close_ease = this.getAttribute('anim_close_ease') ?? this.#anim_close_ease
+            e.#config_open_x = parseFloat(e.getAttribute('rf-config-open-x')) ?? e.#config_open_x
+            e.#config_open_y = parseFloat(e.getAttribute('rf-config-open-y')) ?? e.#config_open_y
+            e.#config_open_duration = parseFloat(e.getAttribute('rf-config-open-duration')) ?? e.#config_open_duration
+            e.#config_open_ease = e.getAttribute('rf-config-open-ease') ?? 'slow(0.7,0.7,false)'
 
-            this.#_render()
+            e.#config_close_x = parseFloat(e.getAttribute('rf-config-close-x')) ?? e.#config_close_x
+            e.#config_close_y = parseFloat(e.getAttribute('rf-config-close-y')) ?? e.#config_close_y
+            e.#config_close_duration = parseFloat(e.getAttribute('rf-config-close-duration')) ?? e.#config_close_duration
+            e.#config_close_ease = e.getAttribute('rf-config-close-ease') ?? 'slow(0.7,0.7,false)'
+
+            e.#tag_container = e.querySelector('[data-rf-tag-container]')
+            e.#tag_backdrop = e.querySelector('[data-rf-tag-backdrop]')
+
+            this.#render()
         }
 
         connectedCallback () { }
@@ -171,22 +178,19 @@ function RedFlow ()
         disconnectedCallback () { }
 
 
-        #_render ()
+        #render ()
         {
-            gsap.set(this, { autoAlpha: 1, y: this.#anim_close_y, x: this.#anim_close_x })
-
-            console.log('api open', this.#api_code_to_open)
-            console.log('api close', this.#api_code_to_close)
+            gsap.set(this, { autoAlpha: 1, y: this.#config_close_y, x: this.#config_close_x })
         }
 
         #open ()
         {
             gsap.to(this, {
                 autoAlpha: 1,
-                y: this.#anim_open_y,
-                x: this.#anim_open_x,
-                ease: this.#anim_open_ease,
-                duration: this.#anim_open_duration,
+                y: this.#config_open_y,
+                x: this.#config_open_x,
+                ease: this.#config_open_ease,
+                duration: this.#config_open_duration,
             })
         }
 
@@ -194,31 +198,39 @@ function RedFlow ()
         {
             gsap.to(this, {
                 autoAlpha: 0,
-                y: this.#anim_close_y,
-                x: this.#anim_close_x,
-                ease: this.#anim_close_ease,
-                duration: this.#anim_close_duration,
+                y: this.#config_close_y,
+                x: this.#config_close_x,
+                ease: this.#config_close_ease,
+                duration: this.#config_close_duration,
             })
         }
 
-        #destroy () { }
+        #destroy () { console.log('destroy') }
 
         api (key)
         {
-            if (key === this.#api_code_to_open) {
-                this.open()
-            } else if (key === this.#api_code_to_close) {
-                this.close()
+            if (key === this.#api_open) {
+                this.#open()
+            }
+
+            if (key === this.#api_close) {
+                this.#close()
+            }
+
+            if (key === this.#api_destroy) {
+                this.#destroy()
             }
         }
 
     }
 
-    const modal = document.getElementById('myModal')
+
 
     rf.lib.load(['gsap']).then(() =>
     {
-        customElements.define('redflow-modal', Modal_ab02)
+        customElements.define('redflow-modal', Modal_01)
+
+        const modal = document.getElementById('myModal')
 
         document.getElementById('openBtn').addEventListener('click', function ()
         {
