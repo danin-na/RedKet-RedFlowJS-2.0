@@ -138,81 +138,99 @@ function RedFlow ()
     {
         class Modal_01 extends HTMLElement
         {
+            // -------------------- Attribute
+
             #rf = {
+                anim: {
+                    init: null,
+                    open: null,
+                    close: null,
+                },
                 tag: {
                     backdrop: null,
                     container: null,
                 },
-                anim: {
-                    init: 0,
-                    open: 0,
-                    close: 0,
-                    state: null,
+                state: {
+                    animation: null,
+                    connected: false,
                 },
             }
+
+            // -------------------- Trigger
 
             constructor()
             {
                 super()
-                this.#rf.tag.backdrop = this.querySelector('[rf-tag-backdrop]')
-                this.#rf.tag.container = this.querySelector('[rf-tag-container]')
             }
 
-            // 1- observe
             static get observedAttributes ()
             {
                 return ['rf-anim-init', 'rf-anim-open', 'rf-anim-close']
             }
 
-            // 2 - get if update
-            #update ()
+            attributeChangedCallback (name, oldValue, newValue)
             {
-                this.#rf.anim.init = JSON.parse(this.getAttribute('rf-anim-init'))
-                this.#rf.anim.open = JSON.parse(this.getAttribute('rf-anim-open'))
-                this.#rf.anim.close = JSON.parse(this.getAttribute('rf-anim-close'))
+                if (oldValue === newValue || !this.#rf.state.connected) return
+                this.#render()
             }
 
-            // 3- change if update
-            attributeChangedCallback ()
-            {
-                this.#update()
-            }
-
-            // 4- add element to DOM
             connectedCallback ()
             {
-                gsap.set(this.#rf.tag.backdrop, this.#rf.anim.init)
-                gsap.set(this.#rf.tag.container, this.#rf.anim.init)
+                this.#rf.state.connected = true
+                this.#rf.tag.backdrop = this.querySelector('[rf-tag-backdrop]')
+                this.#rf.tag.container = this.querySelector('[rf-tag-container]')
+                this.#render()
             }
 
             disconnectedCallback ()
             {
-                console.log('destroy')
-                this.#rf.anim.state?.kill()
+                this.#rf.state.animation?.kill()
                 gsap.killTweensOf(this.#rf.tag.backdrop)
                 gsap.killTweensOf(this.#rf.tag.container)
+                this.#rf.anim.init = null
+                this.#rf.anim.open = null
+                this.#rf.anim.close = null
+                this.#rf.tag.backdrop = null
+                this.#rf.tag.container = null
+                this.#rf.state.animation = null
+                this.#rf.state.connected = false
             }
+
+            // -------------------- Helper
+
+            #render ()
+            {
+                this.#rf.anim.init = JSON.parse(this.getAttribute('rf-anim-init'))
+                this.#rf.anim.open = JSON.parse(this.getAttribute('rf-anim-open'))
+                this.#rf.anim.close = JSON.parse(this.getAttribute('rf-anim-close'))
+                gsap.set(this.#rf.tag.backdrop, this.#rf.anim.init)
+                gsap.set(this.#rf.tag.container, this.#rf.anim.init)
+            }
+
+            // -------------------- Private API
 
             #open ()
             {
-                this.#rf.anim.state?.kill()
-                this.#rf.anim.state = gsap.timeline()
-                this.#rf.anim.state
+                this.#rf.state.animation?.kill()
+                this.#rf.state.animation = gsap.timeline()
+                this.#rf.state.animation
                     .set(this.#rf.tag.container, this.#rf.anim.init)
                     .to(this.#rf.tag.container, this.#rf.anim.open)
             }
 
             #close ()
             {
-                this.#rf.anim.state?.kill()
-                this.#rf.anim.state = gsap.timeline()
-                this.#rf.anim.state.to(this.#rf.tag.container, this.#rf.anim.close)
+                this.#rf.state.animation?.kill()
+                this.#rf.state.animation = gsap.timeline()
+                this.#rf.state.animation.to(this.#rf.tag.container, this.#rf.anim.close)
             }
 
             #destroy ()
             {
                 this.remove()
             }
+
+            // -------------------- Public API
 
             api (action)
             {
@@ -227,7 +245,6 @@ function RedFlow ()
                         this.#destroy()
                         break
                     default:
-                        console.warn(`Unknown action: ${action}`)
                         break
                 }
             }
@@ -235,19 +252,25 @@ function RedFlow ()
 
         class Icon_01 extends HTMLElement
         {
+            // -------------------- Attribute
+
             #rf = {
                 svg: {
-                    source: null,
+                    source: '',
                 },
                 tag: {
                     container: null,
                 },
+                state: {
+                    connected: false,
+                },
             }
+
+            // -------------------- Trigger
 
             constructor()
             {
                 super()
-                this.#rf.tag.container = this.querySelector('[rf-tag-container]')
             }
 
             static get observedAttributes ()
@@ -255,27 +278,42 @@ function RedFlow ()
                 return ['rf-svg-source']
             }
 
-            #update ()
+            attributeChangedCallback (name, oldValue, newValue)
             {
-                this.#rf.config.source = this.getAttribute('rf-svg-source')
-            }
-
-            attributeChangedCallback ()
-            {
-                this.#update()
-                this.#rf.tag.container.innerHTML = decodeURIComponent(this.#rf.config.source)
+                if (oldValue === newValue || !this.#rf.state.connected) return
+                this.#render()
             }
 
             connectedCallback ()
             {
-                this.#update()
-                this.#rf.tag.container.innerHTML = decodeURIComponent(this.#rf.config.source)
+                this.#rf.state.connected = true
+                this.#rf.tag.container = this.querySelector('[rf-tag-container]')
+                this.#render()
             }
+
+            disconnectedCallback ()
+            {
+                this.#rf.state.connected = false
+                this.#rf.svg.source = null
+                this.#rf.tag.container = null
+            }
+
+            // -------------------- Helper
+
+            #render ()
+            {
+                this.#rf.svg.source = this.getAttribute('rf-svg-source')
+                this.#rf.tag.container.innerHTML = decodeURIComponent(this.#rf.svg.source)
+            }
+
+            // -------------------- Private API
 
             #destroy ()
             {
                 this.remove()
             }
+
+            // -------------------- Public API
 
             api (action)
             {
@@ -319,7 +357,6 @@ function RedFlow ()
             {
                 e.addEventListener(eventType, () =>
                 {
-                    console.log('yes')
                     document.querySelector(`[rf-sync="${e.#target_sync}"]`).api(e.#target_api)
                 })
             })
