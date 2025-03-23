@@ -132,93 +132,108 @@ function RedFlow ()
         return { load }
     })()
 
-    class Modal_01 extends HTMLElement
+    // ------------- RedFlow component
+
+    rf.component = (() =>
     {
-        #tagContainer = null
-        #tagBackdrop = null
-        #timeline = null
-
-        constructor()
+        class Modal_01 extends HTMLElement
         {
-            super()
-        }
+            #rf = {
+                tag: {
+                    backdrop: null,
+                    container: null,
+                },
+                anim: {
+                    init: 0,
+                    open: 0,
+                    close: 0,
+                    state: null,
+                },
+            }
 
-        static get observedAttributes ()
-        {
-            return ['animation-initial', 'animation-open', 'animation-close']
-        }
+            constructor()
+            {
+                super()
+            }
 
-        connectedCallback ()
-        {
-            this.#tagContainer = this.querySelector('[data-rf-tag-container]')
-            this.#tagBackdrop = this.querySelector('[data-rf-tag-backdrop]')
-            this.#render()
-        }
+            // 1- observe
+            static get observedAttributes ()
+            {
+                return ['rf-anim-init', 'rf-anim-open', 'rf-anim-close']
+            }
 
-        disconnectedCallback ()
-        {
-            this.#destroy()
-        }
+            // 2 - get if update
+            #update ()
+            {
+                this.#rf.anim.init = JSON.parse(this.getAttribute('rf-anim-init'))
+                this.#rf.anim.open = JSON.parse(this.getAttribute('rf-anim-open'))
+                this.#rf.anim.close = JSON.parse(this.getAttribute('rf-anim-close'))
+            }
 
-        attributeChangedCallback () { }
+            // 3- change if update
+            attributeChangedCallback ()
+            {
+                this.#update()
+            }
 
-        #render ()
-        {
-            const animInitial = JSON.parse(this.getAttribute('animation-initial') || '{"autoAlpha":0}')
-            gsap.set(this.#tagContainer, animInitial)
-            gsap.set(this.#tagBackdrop, animInitial)
-        }
+            // 4- add element to DOM
+            connectedCallback ()
+            {
+                this.#rf.tag.backdrop = this.querySelector('[data-rf-tag-backdrop]')
+                this.#rf.tag.container = this.querySelector('[data-rf-tag-container]')
+                gsap.set(this.#rf.tag.backdrop, this.#rf.anim.init)
+                gsap.set(this.#rf.tag.container, this.#rf.anim.init)
+            }
 
-        #open ()
-        {
-            const animInitial = JSON.parse(this.getAttribute('animation-initial') || '{"autoAlpha":0}')
-            const animOpen = JSON.parse(
-                this.getAttribute('animation-open') || '{"autoAlpha":1,"duration":0.2,"ease":"power1.out"}'
-            )
+            disconnectedCallback ()
+            {
+                console.log('destroy')
+                this.#rf.anim.state?.kill()
+                gsap.killTweensOf(this.#rf.tag.backdrop)
+                gsap.killTweensOf(this.#rf.tag.container)
+            }
 
-            this.#timeline?.kill()
-            this.#timeline = gsap.timeline()
-            this.#timeline.set(this.#tagContainer, animInitial).to(this.#tagContainer, animOpen)
-        }
+            #open ()
+            {
+                this.#rf.anim.state?.kill()
+                this.#rf.anim.state = gsap.timeline()
+                this.#rf.anim.state.set(this.#rf.tag.container, this.#rf.anim.init).to(this.#rf.tag.container, this.#rf.anim.open)
+            }
 
-        #close ()
-        {
-            const animClose = JSON.parse(
-                this.getAttribute('animation-close') || '{"autoAlpha":0,"duration":0.2,"ease":"power1.in"}'
-            )
+            #close ()
+            {
+                this.#rf.anim.state?.kill()
+                this.#rf.anim.state = gsap.timeline()
+                this.#rf.anim.state.to(this.#rf.tag.container, this.#rf.anim.close)
+            }
 
-            this.#timeline?.kill()
-            this.#timeline = gsap.timeline()
-            this.#timeline.to(this.#tagContainer, animClose)
-        }
+            #destroy ()
+            {
+                this.remove()
+            }
 
-        #destroy ()
-        {
-            this.#timeline?.kill()
-            gsap.killTweensOf(this.#tagContainer)
-            gsap.killTweensOf(this.#tagBackdrop)
-            this.#tagContainer = null
-            this.#tagBackdrop = null
-        }
-
-        api (action)
-        {
-            switch (action) {
-                case 'open':
-                    this.#open()
-                    break
-                case 'close':
-                    this.#close()
-                    break
-                case 'destroy':
-                    this.#destroy()
-                    break
-                default:
-                    console.warn(`Unknown action: ${action}`)
-                    break
+            api (action)
+            {
+                switch (action) {
+                    case 'open':
+                        this.#open()
+                        break
+                    case 'close':
+                        this.#close()
+                        break
+                    case 'destroy':
+                        this.#destroy()
+                        break
+                    default:
+                        console.warn(`Unknown action: ${action}`)
+                        break
+                }
             }
         }
-    }
+
+        return { Modal_01 }
+    })()
+
 
     class Trigger_01 extends HTMLElement
     {
@@ -242,10 +257,6 @@ function RedFlow ()
 
             e.#target_api = e.getAttribute('rf-target-api') || e.#target_api
             e.#target_sync = e.getAttribute('rf-target-sync') || null
-
-            console.log('A', e.#target_api)
-            console.log('B', e.#target_sync)
-            console.log('C', e.#event_Type)
 
             e.#event_Type.forEach((eventType) =>
             {
@@ -294,7 +305,7 @@ function RedFlow ()
 
     rf.lib.load(['gsap']).then(() =>
     {
-        customElements.define('redflow-modal-01', Modal_01)
+        customElements.define('redflow-modal-01', rf.component.Modal_01)
         customElements.define('redflow-trigger-01', Trigger_01)
     })
 }

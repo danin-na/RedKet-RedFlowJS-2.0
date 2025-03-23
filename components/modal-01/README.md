@@ -1,7 +1,6 @@
-# Modal 01 ( Component )
-Here are several creative animation sets you can use with the `Modal_01` component. Each set includes:
+# Modal 01
 
-
+<img src="./diagram.svg" alt="Example SVG demonstrating how Redflow works" />
 ---
 
 ## 1. Smooth Fade and Scale
