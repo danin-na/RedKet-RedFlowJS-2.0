@@ -154,8 +154,8 @@ function RedFlow ()
             constructor()
             {
                 super()
-                this.#rf.tag.backdrop = this.querySelector('[data-rf-tag-backdrop]')
-                this.#rf.tag.container = this.querySelector('[data-rf-tag-container]')
+                this.#rf.tag.backdrop = this.querySelector('[rf-tag-backdrop]')
+                this.#rf.tag.container = this.querySelector('[rf-tag-container]')
             }
 
             // 1- observe
@@ -236,11 +236,11 @@ function RedFlow ()
         class Icon_01 extends HTMLElement
         {
             #rf = {
-                tag: {
-                    container: null,
-                },
                 svg: {
                     source: null,
+                },
+                tag: {
+                    container: null,
                 },
             }
 
