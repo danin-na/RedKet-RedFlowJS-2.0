@@ -132,107 +132,89 @@ function RedFlow ()
         return { load }
     })()
 
-    class Modal_01 extends HTMLElement 
+    class Modal_01 extends HTMLElement
     {
-        #sync = ''
-
-        #tag_container = null
-        #tag_backdrop = null
-
-        #config_open_x = 0
-        #config_open_y = 20
-        #config_open_duration = 0.2
-        #config_open_ease = 'slow(0.7,0.7,false)'
-
-        #config_close_x = 0
-        #config_close_y = 0
-        #config_close_duration = 0.2
-        #config_close_ease = 'slow(0.7,0.7,false)'
+        #tagContainer = null
+        #tagBackdrop = null
+        #timeline = null
 
         constructor()
         {
             super()
-
-            const e = this
-
-            e.#sync = e.getAttribute('rf-sync') || null
-
-            e.#config_open_x = parseFloat(e.getAttribute('rf-config-open-x')) || e.#config_open_x
-            e.#config_open_y = parseFloat(e.getAttribute('rf-config-open-y')) || e.#config_open_y
-            e.#config_open_ease = e.getAttribute('rf-config-open-ease') || 'slow(0.7,0.7,false)'
-            e.#config_open_duration = parseFloat(e.getAttribute('rf-config-open-duration')) || e.#config_open_duration
-
-            e.#config_close_x = parseFloat(e.getAttribute('rf-config-close-x')) || e.#config_close_x
-            e.#config_close_y = parseFloat(e.getAttribute('rf-config-close-y')) || e.#config_close_y
-            e.#config_close_ease = e.getAttribute('rf-config-close-ease') || 'slow(0.7,0.7,false)'
-            e.#config_close_duration = parseFloat(e.getAttribute('rf-config-close-duration')) || e.#config_close_duration
-
-            e.#tag_container = e.querySelector('[data-rf-tag-container]')
-            e.#tag_backdrop = e.querySelector('[data-rf-tag-backdrop]')
-
-            e.#render()
         }
 
         static get observedAttributes ()
         {
-            return ['rf-config-open-x', 'rf-config-open-y', 'rf-config-open-duration', 'rf-config-open-ease']
+            return ['animation-initial', 'animation-open', 'animation-close']
         }
 
-        connectedCallback () { }
+        connectedCallback ()
+        {
+            this.#tagContainer = this.querySelector('[data-rf-tag-container]')
+            this.#tagBackdrop = this.querySelector('[data-rf-tag-backdrop]')
+            this.#render()
+        }
 
-        disconnectedCallback () { }
+        disconnectedCallback ()
+        {
+            this.#destroy()
+        }
+
+        attributeChangedCallback () { }
 
         #render ()
         {
-            const e = this
-
-            gsap.set(e.#tag_container, { autoAlpha: 0, y: e.#config_close_y, x: e.#config_close_x })
-            gsap.set(e.#tag_backdrop, { autoAlpha: 0, y: e.#config_close_y, x: e.#config_close_x })
+            const animInitial = JSON.parse(this.getAttribute('animation-initial') || '{"autoAlpha":0}')
+            gsap.set(this.#tagContainer, animInitial)
+            gsap.set(this.#tagBackdrop, animInitial)
         }
 
         #open ()
         {
-            const e = this
+            const animInitial = JSON.parse(this.getAttribute('animation-initial') || '{"autoAlpha":0}')
+            const animOpen = JSON.parse(
+                this.getAttribute('animation-open') || '{"autoAlpha":1,"duration":0.2,"ease":"power1.out"}'
+            )
 
-            gsap.to(e.#tag_container, {
-                autoAlpha: 1,
-                y: e.#config_open_y,
-                x: e.#config_open_x,
-                ease: e.#config_open_ease,
-                duration: e.#config_open_duration,
-            })
+            this.#timeline?.kill()
+            this.#timeline = gsap.timeline()
+            this.#timeline.set(this.#tagContainer, animInitial).to(this.#tagContainer, animOpen)
         }
 
         #close ()
         {
-            const e = this
+            const animClose = JSON.parse(
+                this.getAttribute('animation-close') || '{"autoAlpha":0,"duration":0.2,"ease":"power1.in"}'
+            )
 
-            gsap.to(e.#tag_container, {
-                autoAlpha: 0,
-                y: e.#config_close_y,
-                x: e.#config_close_x,
-                ease: e.#config_close_ease,
-                duration: e.#config_close_duration,
-            })
+            this.#timeline?.kill()
+            this.#timeline = gsap.timeline()
+            this.#timeline.to(this.#tagContainer, animClose)
         }
 
-        #destroy () { }
-
-        api (key)
+        #destroy ()
         {
-            switch (key) {
+            this.#timeline?.kill()
+            gsap.killTweensOf(this.#tagContainer)
+            gsap.killTweensOf(this.#tagBackdrop)
+            this.#tagContainer = null
+            this.#tagBackdrop = null
+        }
+
+        api (action)
+        {
+            switch (action) {
                 case 'open':
                     this.#open()
-                    console.log('open')
                     break
                 case 'close':
                     this.#close()
-                    console.log('close')
                     break
                 case 'destroy':
                     this.#destroy()
                     break
                 default:
+                    console.warn(`Unknown action: ${action}`)
                     break
             }
         }
@@ -252,16 +234,24 @@ function RedFlow ()
 
             const eventsAttr = e.getAttribute('rf-event-type')
             e.#event_Type = eventsAttr
-                ? eventsAttr.split(',').map(ev => ev.trim()).filter(Boolean)
+                ? eventsAttr
+                    .split(',')
+                    .map((ev) => ev.trim())
+                    .filter(Boolean)
                 : e.#event_Type
 
-            e.#target_api = e.getAttribute('rf-api-type') || e.#target_api
-            e.#target_sync = e.getAttribute('rf-sync-get') || null
+            e.#target_api = e.getAttribute('rf-target-api') || e.#target_api
+            e.#target_sync = e.getAttribute('rf-target-sync') || null
 
-            e.#event_Type.forEach(eventType =>
+            console.log('A', e.#target_api)
+            console.log('B', e.#target_sync)
+            console.log('C', e.#event_Type)
+
+            e.#event_Type.forEach((eventType) =>
             {
                 e.addEventListener(eventType, () =>
                 {
+                    console.log('yes')
                     document.querySelector(`[rf-sync="${e.#target_sync}"]`).api(e.#target_api)
                 })
             })
@@ -274,14 +264,33 @@ function RedFlow ()
         // Optional public API method for manual triggering
         api (command)
         {
+            console.log('trigger api')
             if (command === 'trigger') {
                 document.querySelector(`[rf-sync="${this.#target_sync}"]`).api(this.#target_api)
             }
         }
     }
 
+    class Icon_01 extends HTMLElement
+    {
+        #svgSource = null
 
+        constructor()
+        {
+            super()
+        }
 
+        connectedCallback ()
+        {
+            this.#render()
+        }
+
+        #render ()
+        {
+            this.#svgSource = this.getAttribute('svgSource')
+            this.innerHTML = decodeURIComponent(this.#svgSource)
+        }
+    }
 
     rf.lib.load(['gsap']).then(() =>
     {
@@ -290,12 +299,15 @@ function RedFlow ()
     })
 }
 
-try {
-    const instance1 = RedFlow()
-    //const instance2 = RedFlow()
-} catch (e) {
-    console.warn(e)
-}
+document.addEventListener('DOMContentLoaded', () =>
+{
+    try {
+        const instance1 = RedFlow()
+        //const instance2 = RedFlow()
+    } catch (e) {
+        console.warn(e)
+    }
+})
 
 /*
 const rf = {}
@@ -398,26 +410,7 @@ class Marquee_01 extends HTMLElement
     }
 }
 
-class Icon_01 extends HTMLElement
-{
-    #svgSource = null
 
-    constructor()
-    {
-        super()
-    }
-
-    connectedCallback ()
-    {
-        this.#render()
-    }
-
-    #render ()
-    {
-        this.#svgSource = this.getAttribute("svgSource")
-        this.innerHTML = decodeURIComponent(this.#svgSource)
-    }
-}
 
 customElements.define("redflow-marquee-a", Marquee_01)
 customElements.define("redflow-icon-a", Icon_01)
