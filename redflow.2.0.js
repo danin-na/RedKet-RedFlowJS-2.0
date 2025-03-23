@@ -154,6 +154,8 @@ function RedFlow ()
             constructor()
             {
                 super()
+                this.#rf.tag.backdrop = this.querySelector('[data-rf-tag-backdrop]')
+                this.#rf.tag.container = this.querySelector('[data-rf-tag-container]')
             }
 
             // 1- observe
@@ -179,8 +181,6 @@ function RedFlow ()
             // 4- add element to DOM
             connectedCallback ()
             {
-                this.#rf.tag.backdrop = this.querySelector('[data-rf-tag-backdrop]')
-                this.#rf.tag.container = this.querySelector('[data-rf-tag-container]')
                 gsap.set(this.#rf.tag.backdrop, this.#rf.anim.init)
                 gsap.set(this.#rf.tag.container, this.#rf.anim.init)
             }
@@ -197,7 +197,9 @@ function RedFlow ()
             {
                 this.#rf.anim.state?.kill()
                 this.#rf.anim.state = gsap.timeline()
-                this.#rf.anim.state.set(this.#rf.tag.container, this.#rf.anim.init).to(this.#rf.tag.container, this.#rf.anim.open)
+                this.#rf.anim.state
+                    .set(this.#rf.tag.container, this.#rf.anim.init)
+                    .to(this.#rf.tag.container, this.#rf.anim.open)
             }
 
             #close ()
@@ -231,9 +233,65 @@ function RedFlow ()
             }
         }
 
-        return { Modal_01 }
-    })()
+        class Icon_01 extends HTMLElement
+        {
+            #rf = {
+                tag: {
+                    container: null,
+                },
+                config: {
+                    source: null,
+                },
+            }
 
+            constructor()
+            {
+                super()
+                this.#rf.tag.container = this.querySelector('[rf-tag-container]')
+            }
+
+            static get observedAttributes ()
+            {
+                console.log('Observeeeeeeeeeeeeeeeee')
+                return ['rf-config-source']
+            }
+
+            #update ()
+            {
+                this.#rf.config.source = this.getAttribute('rf-config-source')
+            }
+
+            attributeChangedCallback ()
+            {
+                this.#update()
+                this.#rf.tag.container.innerHTML = decodeURIComponent(this.#rf.config.source)
+            }
+
+            connectedCallback ()
+            {
+                this.#update()
+                this.#rf.tag.container.innerHTML = decodeURIComponent(this.#rf.config.source)
+            }
+
+            #destroy ()
+            {
+                this.remove()
+            }
+
+            api (action)
+            {
+                switch (action) {
+                    case 'destroy':
+                        this.#destroy()
+                        break
+                    default:
+                        break
+                }
+            }
+        }
+
+        return { Modal_01, Icon_01 }
+    })()
 
     class Trigger_01 extends HTMLElement
     {
@@ -282,30 +340,10 @@ function RedFlow ()
         }
     }
 
-    class Icon_01 extends HTMLElement
-    {
-        #svgSource = null
-
-        constructor()
-        {
-            super()
-        }
-
-        connectedCallback ()
-        {
-            this.#render()
-        }
-
-        #render ()
-        {
-            this.#svgSource = this.getAttribute('svgSource')
-            this.innerHTML = decodeURIComponent(this.#svgSource)
-        }
-    }
-
     rf.lib.load(['gsap']).then(() =>
     {
         customElements.define('redflow-modal-01', rf.component.Modal_01)
+        customElements.define('redflow-icon-01', rf.component.Icon_01)
         customElements.define('redflow-trigger-01', Trigger_01)
     })
 }
