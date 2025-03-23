@@ -239,7 +239,7 @@ function RedFlow ()
                 tag: {
                     container: null,
                 },
-                config: {
+                svg: {
                     source: null,
                 },
             }
@@ -252,13 +252,12 @@ function RedFlow ()
 
             static get observedAttributes ()
             {
-                console.log('Observeeeeeeeeeeeeeeeee')
-                return ['rf-config-source']
+                return ['rf-svg-source']
             }
 
             #update ()
             {
-                this.#rf.config.source = this.getAttribute('rf-config-source')
+                this.#rf.config.source = this.getAttribute('rf-svg-source')
             }
 
             attributeChangedCallback ()
