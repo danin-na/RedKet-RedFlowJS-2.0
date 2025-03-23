@@ -1,10 +1,6 @@
-# Modal Animation Samples (GSAP JSON)
-
+# Modal 01 ( Component )
 Here are several creative animation sets you can use with the `Modal_01` component. Each set includes:
 
-- **Initial State**
-- **Open Animation**
-- **Close Animation**
 
 ---
 
@@ -100,18 +96,9 @@ Here are several creative animation sets you can use with the `Modal_01` compone
 ```json
 {"autoAlpha": 0, "scale": 0, "duration": 0.8, "ease": "bounce.in", "delay": 0.2}
 ```
-
-# Modal Animation Samples (Advanced & Crazy GSAP Sets)
-
-Here are some bold and creative animation sets for the `Modal_01` component using GSAP. Each set includes:
-
-- **Initial State**
-- **Open Animation**
-- **Close Animation**
-
 ---
 
-## 1. Wild Spin & Skew
+## 6. Wild Spin & Skew
 
 ### Initial
 ```json
@@ -130,7 +117,7 @@ Here are some bold and creative animation sets for the `Modal_01` component usin
 
 ---
 
-## 2. Morphing 3D Twist
+## 7. Morphing 3D Twist
 
 ### Initial
 ```json
@@ -149,7 +136,7 @@ Here are some bold and creative animation sets for the `Modal_01` component usin
 
 ---
 
-## 3. Rotating Curtain
+## 8. Rotating Curtain
 
 ### Initial
 ```json
@@ -168,7 +155,7 @@ Here are some bold and creative animation sets for the `Modal_01` component usin
 
 ---
 
-## 4. Wacky Flip & Wiggle
+## 9. Wacky Flip & Wiggle
 
 ### Initial
 ```json
