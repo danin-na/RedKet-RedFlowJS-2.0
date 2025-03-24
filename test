@@ -456,13 +456,10 @@ function RedFlow ()
 
         class Marquee_01 extends HTMLElement
         {
-            // -------------------- Variables
+            //--------------------------------------------
+            // ----------------------------------- TRIGGER
 
-            #rf = { anim: { ease: null, duration: null, direction: null }, ref: { slider: null } } // RedFlow Component data-rf-attr
-
-            #st = { life: { gsapTween: null, gsapTweenOld: null, isConnected: null } } // State
-
-            // -------------------- Trigger
+            //---------------------- trigger ( callback )
 
             constructor()
             {
@@ -474,11 +471,9 @@ function RedFlow ()
                 return ['rf-anim-ease', 'rf-anim-direction', 'rf-anim-duration']
             }
 
-            attributeChangedCallback (name, oldValue, newValue)
+            attributeChangedCallback (n, o, v)
             {
-                if (oldValue === newValue || !this.#st.life.isConnected) return
-
-                this.#f_util.render()
+                if (o !== v && this.#st.life.isConnected) this.#_util_render()
             }
 
             connectedCallback ()
@@ -488,79 +483,166 @@ function RedFlow ()
                 if (this.#rf.ref.slider.length == 1) {
                     this.appendChild(this.querySelector('[rf-ref-slider]').cloneNode(true))
                 }
-                this.#f_util.render()
+                this.#_util_render()
+                // Add resize event listener
+                this.#st.resize.handler = () => this.#_util_render()
+                window.addEventListener('resize', this.#st.resize.handler)
             }
 
             disconnectedCallback ()
             {
-                this.#f_util.clear()
+                this.#_util_clear()
             }
 
-            // -------------------- Utility
+            //---------------------- trigger ( util )
 
-            #f_util = {
-                render: () =>
-                {
-                    // kill animation / but save animation position
-                    if (this.#st.life.gsapTween) {
-                        this.#st.life.gsapTweenOld = this.#st.life.gsapTween.progress()
-                        this.#st.life.gsapTween.progress(0).kill()
-                        this.#st.life.gsapTween = null
+            #_util_render ()
+            {
+                // kill animation / but save animation position
+                if (this.#st.life.tween) {
+                    this.#st.life.tweenOld = this.#st.life.tween.progress()
+                    this.#st.life.tween.progress(0).kill()
+                    this.#st.life.tween = null
+                }
+
+                // gete latest data
+                this.#rf.anim.ease = this.getAttribute('rf-anim-ease')
+                this.#rf.anim.duration = parseFloat(this.getAttribute('rf-anim-duration'))
+                this.#rf.anim.direction = this.getAttribute('rf-anim-direction')
+
+                this.#rf.ref.slider = this.querySelectorAll('[rf-ref-slider]')
+
+                const w = this.#rf.ref.slider[0].getBoundingClientRect().width
+
+                // create new animation
+                this.#st.life.tween = gsap.fromTo(
+                    this.#rf.ref.slider,
+                    { x: this.#rf.anim.direction === 'left' ? 0 : -w },
+                    {
+                        x: this.#rf.anim.direction === 'left' ? -w : 0,
+                        duration: this.#rf.anim.duration,
+                        ease: this.#rf.anim.ease,
+                        repeat: -1,
                     }
+                )
 
-                    // gete latest data
-                    this.#rf.anim.ease = this.getAttribute('rf-anim-ease')
-                    this.#rf.anim.duration = parseFloat(this.getAttribute('rf-anim-duration'))
-                    this.#rf.anim.direction = this.getAttribute('rf-anim-direction')
-
-                    this.#rf.ref.slider = this.querySelectorAll('[rf-ref-slider]')
-
-                    // create new animation
-                    this.#st.life.gsapTween = gsap.fromTo(
-                        this.#rf.ref.slider,
-                        { x: this.#rf.anim.direction === 'left' ? 0 : -this.#rf.ref.slider[0].getBoundingClientRect().width },
-                        {
-                            x: this.#rf.anim.direction === 'left' ? -this.#rf.ref.slider[0].getBoundingClientRect().width : 0,
-                            duration: this.#rf.anim.duration,
-                            ease: this.#rf.anim.ease,
-                            repeat: -1,
-                        }
-                    )
-
-                    // bring back animation position
-                    this.#st.life.gsapTween.progress(this.#st.life.gsapTweenOld)
-                },
-
-                clear: () =>
-                {
-                    this.#st.life.isConnected = false
-                    if (this.#st.life.gsapTween) {
-                        this.#st.life.gsapTween.progress(0).kill()
-                        this.#st.life.gsapTween = null
-                    }
-                    this.#rf.ref.slider = null
-                },
+                // bring back animation position
+                this.#st.life.tween.progress(this.#st.life.tweenOld)
             }
 
-            // -------------------- Private API
+            #_util_clear ()
+            {
+                if (this.#st.life.tween) this.#st.life.tween.progress(0).kill()
+                if (this.#st.resize.handler) window.removeEventListener('resize', this.#st.resize.handler)
 
-            #f_api = {
-                destroy: () =>
-                {
-                    this.remove()
-                },
+                this.#st.life.tweenOld = null
+                this.#st.life.tween = null
+                this.#st.resize.handler = null
+                this.#st.life.isConnected = null
+
+                this.#rf.ref.slider = null
+                this.#rf.anim.ease = null
+                this.#rf.anim.duration = null
+                this.#rf.anim.direction = null
             }
 
-            // -------------------- Public API
+            //--------------------------------------------
+            // ------------------------------------- STATE
 
-            api (action)
+            //---------------------- state ( private )
+
+            #st = { life: { tween: null, tweenOld: null, isConnected: null }, resize: { handler: null } } // State
+
+            //---------------------- state ( attribute )
+
+            #rf = { anim: { ease: null, duration: null, direction: null }, ref: { slider: null } } // RedFlow
+
+            //--------------------------------------------
+            // --------------------------------------- API
+
+            //---------------------- api (private)
+
+            #_api_pause ()
+            {
+                if (this.#st.life.tween && this.#st.life.tween.isActive()) {
+                    this.#st.life.tween.pause()
+                }
+            }
+
+            #_api_resume ()
+            {
+                if (this.#st.life.tween && !this.#st.life.tween.isActive()) {
+                    this.#st.life.tween.resume()
+                }
+            }
+
+            #_api_remove ()
+            {
+                this.remove()
+            }
+
+            #_api_setSpeed (speedMultiplier)
+            {
+                if (this.#st.life.tween) {
+                    this.#st.life.tween.timeScale(speedMultiplier)
+                }
+            }
+
+            #_api_setDirection (direction)
+            {
+                this.setAttribute('rf-anim-direction', direction)
+            }
+
+            #_api_setEase (ease)
+            {
+                this.setAttribute('rf-anim-ease', ease)
+            }
+
+            #_api_restart ()
+            {
+                if (this.#st.life.tween) {
+                    this.#st.life.tween.restart()
+                }
+            }
+
+            #_api_stop ()
+            {
+                if (this.#st.life.tween) {
+                    this.#st.life.tween.progress(0).pause()
+                }
+            }
+
+            //---------------------- api (public)
+
+            api (action, params)
             {
                 switch (action) {
-                    case 'destroy':
-                        this.#f_api.destroy()
+                    case 'remove':
+                        this.#_api_remove()
+                        break
+                    case 'pause':
+                        this.#_api_pause()
+                        break
+                    case 'resume':
+                        this.#_api_resume()
+                        break
+                    case 'restart':
+                        this.#_api_restart()
+                        break
+                    case 'setSpeed':
+                        this.#_api_setSpeed(params.speedMultiplier)
+                        break
+                    case 'setDirection':
+                        this.#_api_setDirection(params.direction)
+                        break
+                    case 'setEase':
+                        this.#_api_setEase(params.ease)
+                        break
+                    case 'stop':
+                        this.#_api_stop()
                         break
                     default:
-                        break
+                        console.warn('Invalid API action:', action)
                 }
             }
         }
@@ -572,7 +654,7 @@ function RedFlow ()
     {
         //customElements.define('redflow-modal-01', rf.component.Modal_01)
         //customElements.define('redflow-icon-01', rf.component.Icon_01)
-        //customElements.define('redflow-trigger-01', rf.component.Trigger_01)
+        customElements.define('redflow-trigger-01', rf.component.Trigger_01)
         customElements.define('redflow-marquee-01', rf.component.Marquee_01)
     })
 }
