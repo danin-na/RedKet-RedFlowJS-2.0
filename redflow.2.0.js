@@ -187,7 +187,7 @@ function RedFlow ()
                 this.#clean()
             }
 
-            // -------------------- Helper
+            // -------------------- util
 
             #render ()
             {
@@ -301,7 +301,7 @@ function RedFlow ()
                 this.#clean()
             }
 
-            // -------------------- Helper
+            // -------------------- util
 
             #render ()
             {
@@ -454,14 +454,125 @@ function RedFlow ()
             }
         }
 
-        return { Modal_01, Icon_01, Trigger_01 }
+        class Marquee_01 extends HTMLElement
+        {
+            // -------------------- Variables
+
+            #rf = { anim: { ease: null, duration: null, direction: null }, ref: { slider: null } } // RedFlow Component data-rf-attr
+
+            #st = { life: { gsapTween: null, gsapTweenOld: null, isConnected: null, sliderCloned: null } } // State
+
+            // -------------------- Trigger
+
+            constructor()
+            {
+                super()
+            }
+
+            static get observedAttributes ()
+            {
+                return ['rf-anim-ease', 'rf-anim-direction', 'rf-anim-duration']
+            }
+
+            attributeChangedCallback (name, oldValue, newValue)
+            {
+                if (oldValue === newValue || !this.#st.life.isConnected) return
+                this.#f_util.render()
+            }
+
+            connectedCallback ()
+            {
+                this.#st.life.isConnected = true
+                if (!this.#st.life.sliderCloned) {
+                    this.appendChild(this.querySelector('[rf-ref-slider]').cloneNode(true))
+                    this.#st.life.sliderCloned = true
+                }
+                this.#rf.ref.slider = this.querySelectorAll('[rf-ref-slider]')
+                this.#f_util.render()
+            }
+
+            disconnectedCallback ()
+            {
+                this.#f_util.clear()
+            }
+
+            // -------------------- Utility
+
+            #f_util = {
+                render: () =>
+                {
+                    // kill animation / but save animation position
+                    if (this.#st.life.gsapTween) {
+                        this.#st.life.gsapTweenOld = this.#st.life.gsapTween.progress()
+                        this.#st.life.gsapTween.progress(0).kill()
+                        this.#st.life.gsapTween = null
+                    }
+
+                    // gete latest data
+                    this.#rf.anim.ease = this.getAttribute('rf-anim-ease')
+                    this.#rf.anim.duration = parseFloat(this.getAttribute('rf-anim-duration'))
+                    this.#rf.anim.direction = this.getAttribute('rf-anim-direction')
+
+                    // create new animation
+                    this.#st.life.gsapTween = gsap.fromTo(
+                        this.#rf.ref.slider,
+                        { x: this.#rf.anim.direction === 'left' ? 0 : -this.#rf.ref.slider[0].getBoundingClientRect().width },
+                        {
+                            x: this.#rf.anim.direction === 'left' ? -this.#rf.ref.slider[0].getBoundingClientRect().width : 0,
+                            duration: this.#rf.anim.duration,
+                            ease: this.#rf.anim.ease,
+                            repeat: -1,
+                        }
+                    )
+
+                    // bring back animation position
+                    this.#st.life.gsapTween.progress(this.#st.life.gsapTweenOld)
+                },
+
+                clear: () =>
+                {
+                    this.#st.life.isConnected = false
+                    if (this.#st.life.gsapTween) {
+                        this.#st.life.gsapTween.progress(0).kill()
+                        this.#st.life.gsapTween = null
+                    }
+                    this.#rf.ref.slider = null
+                },
+            }
+
+            // -------------------- Private API
+
+            #f_api = {
+                destroy: () =>
+                {
+                    this.remove()
+                },
+            }
+            // -------------------- Public API
+
+            api (action)
+            {
+                switch (action) {
+                    case 'destroy':
+                        this.#f_api.destroy()
+                        break
+                    default:
+                        break
+                }
+            }
+        }
+
+        return { Modal_01, Icon_01, Trigger_01, Marquee_01 }
     })()
 
     rf.lib.load(['gsap']).then(() =>
     {
-        customElements.define('redflow-modal-01', rf.component.Modal_01)
-        customElements.define('redflow-icon-01', rf.component.Icon_01)
-        customElements.define('redflow-trigger-01', rf.component.Trigger_01)
+
+        //customElements.define('redflow-modal-01', rf.component.Modal_01)
+        //customElements.define('redflow-icon-01', rf.component.Icon_01)
+        //customElements.define('redflow-trigger-01', rf.component.Trigger_01)
+        customElements.define('redflow-marquee-01', rf.component.Marquee_01)
+
     })
 }
 
@@ -471,114 +582,6 @@ document.addEventListener('DOMContentLoaded', () =>
         const instance1 = RedFlow()
         //const instance2 = RedFlow()
     } catch (e) {
-        console.warn(e)
+        console.warn('sssss', e)
     }
 })
-
-/*
-const rf = {}
-
-
-
-// ------------------------------- Lib Helpers
-
-
-class Marquee_01 extends HTMLElement
-{
-    // Private fields
-    #tween = null
-    #tweenProg = null
-
-    #slider = null
-    #resizeHandler = null
-
-    #componentLoaded = false
-
-    static get observedAttributes ()
-    {
-        console.log("0 - new Attr")
-        return ["ease", "direction", "duration"]
-    }
-
-    constructor()
-    {
-        super()
-        console.log("1 - constructor")
-        this.#resizeHandler = () => this.#render()
-    }
-
-    attributeChangedCallback ()
-    {
-        if (!this.#componentLoaded) return console.log("2 - attributeChangedCallback Failed")
-
-        console.log("++++")
-        this.#render()
-    }
-
-    connectedCallback ()
-    {
-        rf.lib.load(["gsap"]).then(() =>
-        {
-            console.log("3 - constructor GSAP Loaded")
-            console.log("4 - connectedCallback")
-
-            this.#slider = this.querySelector("[data-rf-items]")
-            this.appendChild(this.#slider.cloneNode(true))
-
-            this.#componentLoaded = true
-
-            this.#render()
-            window.addEventListener("resize", this.#resizeHandler)
-        })
-    }
-
-    disconnectedCallback ()
-    {
-        console.log("----")
-        window.removeEventListener("resize", this.#resizeHandler)
-
-        if (this.#tween) {
-            this.#tween.progress(0).kill()
-            this.#tween = null
-        }
-    }
-
-    #render ()
-    {
-        console.log("5 - render")
-        if (this.#tween) {
-            this.#tweenProg = this.#tween.progress()
-            this.#tween.progress(0).kill()
-        }
-
-        const sliders = this.querySelectorAll("[data-rf-items]")
-
-        const ease = this.getAttribute("ease") || "none"
-        const duration = parseFloat(this.getAttribute("duration")) || 30
-        const direction = this.getAttribute("direction") || "left"
-
-        const width = sliders[0].getBoundingClientRect().width
-        const xFrom = direction === "left" ? 0 : -width
-        const xTo = direction === "left" ? -width : 0
-
-        this.#tween = gsap.fromTo(
-            sliders,
-            { x: xFrom },
-            {
-                x: xTo,
-                duration,
-                ease,
-                repeat: -1,
-            }
-        )
-
-        this.#tween.progress(this.#tweenProg)
-    }
-}
-
-
-
-customElements.define("redflow-marquee-a", Marquee_01)
-customElements.define("redflow-icon-a", Icon_01)
-
-*/
