@@ -184,16 +184,7 @@ function RedFlow ()
 
             disconnectedCallback ()
             {
-                this.#rf.state.animation?.kill()
-                gsap.killTweensOf(this.#rf.tag.backdrop)
-                gsap.killTweensOf(this.#rf.tag.container)
-                this.#rf.anim.init = null
-                this.#rf.anim.open = null
-                this.#rf.anim.close = null
-                this.#rf.tag.backdrop = null
-                this.#rf.tag.container = null
-                this.#rf.state.animation = null
-                this.#rf.state.connected = false
+                this.#clean()
             }
 
             // -------------------- Helper
@@ -205,6 +196,20 @@ function RedFlow ()
                 this.#rf.anim.close = JSON.parse(this.getAttribute('rf-anim-close'))
                 gsap.set(this.#rf.tag.backdrop, this.#rf.anim.init)
                 gsap.set(this.#rf.tag.container, this.#rf.anim.init)
+            }
+
+            #clean ()
+            {
+                this.#rf.state.connected = false
+                this.#rf.state.animation?.kill()
+                gsap.killTweensOf(this.#rf.tag.backdrop)
+                gsap.killTweensOf(this.#rf.tag.container)
+                this.#rf.anim.init = null
+                this.#rf.anim.open = null
+                this.#rf.anim.close = null
+                this.#rf.tag.backdrop = null
+                this.#rf.tag.container = null
+                this.#rf.state.animation = null
             }
 
             // -------------------- Private API
@@ -256,7 +261,7 @@ function RedFlow ()
 
             #rf = {
                 svg: {
-                    source: '',
+                    source: null,
                 },
                 tag: {
                     container: null,
@@ -293,9 +298,7 @@ function RedFlow ()
 
             disconnectedCallback ()
             {
-                this.#rf.state.connected = false
-                this.#rf.svg.source = null
-                this.#rf.tag.container = null
+                this.#clean()
             }
 
             // -------------------- Helper
@@ -304,6 +307,13 @@ function RedFlow ()
             {
                 this.#rf.svg.source = this.getAttribute('rf-svg-source')
                 this.#rf.tag.container.innerHTML = decodeURIComponent(this.#rf.svg.source)
+            }
+
+            #clean ()
+            {
+                this.#rf.state.connected = false
+                this.#rf.svg.source = null
+                this.#rf.tag.container = null
             }
 
             // -------------------- Private API
@@ -327,60 +337,131 @@ function RedFlow ()
             }
         }
 
-        return { Modal_01, Icon_01 }
-    })()
-
-    class Trigger_01 extends HTMLElement
-    {
-        // Private properties
-        #event_Type = ['click']
-        #target_api = 'open'
-        #target_sync = null
-
-        constructor()
+        class Trigger_01 extends HTMLElement
         {
-            super()
-            const e = this
+            // -------------------- Attribute
+            #rf = {
+                event: {
+                    type: [],
+                    holder: [], // to perevent memory leak
+                },
+                target: {
+                    sync: [],
+                    api: [],
+                },
+                state: {
+                    connected: false,
+                },
+            }
 
-            const eventsAttr = e.getAttribute('rf-event-type')
-            e.#event_Type = eventsAttr
-                ? eventsAttr
-                    .split(',')
-                    .map((ev) => ev.trim())
-                    .filter(Boolean)
-                : e.#event_Type
+            // -------------------- Trigger
 
-            e.#target_api = e.getAttribute('rf-target-api') || e.#target_api
-            e.#target_sync = e.getAttribute('rf-target-sync') || null
-
-            e.#event_Type.forEach((eventType) =>
+            constructor()
             {
-                e.addEventListener(eventType, () =>
+                super()
+            }
+
+            static get observedAttributes ()
+            {
+                return ['rf-event-type', 'rf-target-sync', 'rf-target-api']
+            }
+
+            attributeChangedCallback (name, oldValue, newValue)
+            {
+                if (oldValue === newValue || !this.#rf.state.connected) return
+                this.#render()
+            }
+
+            connectedCallback ()
+            {
+                this.#rf.state.connected = true
+                this.#render()
+            }
+
+            disconnectedCallback ()
+            {
+                this.#clean()
+            }
+
+            // -------------------- Helper
+
+            #render ()
+            {
+                // We need this part because if
+                // attributeChangedCallback() calls render() we get memory leak
+                // so we want to make sure to remove old EventListener
+                if (this.#rf.event.holder.length > 0) {
+                    this.#rf.event.holder.forEach(({ e, h }) =>
+                    {
+                        this.removeEventListener(e, h)
+                    })
+                    this.#rf.event.holder = []
+                }
+
+                this.#rf.event.type = this.getAttribute('rf-event-type')
+                    .split(',')
+                    .map((v) => v.trim())
+                this.#rf.target.sync = this.getAttribute('rf-target-sync')
+                    .split(',')
+                    .map((v) => v.trim())
+                this.#rf.target.api = this.getAttribute('rf-target-api')
+                    .split(',')
+                    .map((v) => v.trim())
+
+                this.#rf.event.type.forEach((ev, i) =>
                 {
-                    document.querySelector(`[rf-sync="${e.#target_sync}"]`).api(e.#target_api)
+                    const listener = () =>
+                        document.querySelector(`[rf-sync="${this.#rf.target.sync[i]}"]`).api(this.#rf.target.api[i])
+                    this.addEventListener(ev, listener)
+
+                    // a list to hold all events added
+                    // so we can remove fro memory leaks
+                    this.#rf.event.holder.push({ e: ev, h: listener })
                 })
-            })
-        }
+            }
 
-        connectedCallback () { }
+            #clean ()
+            {
+                this.#rf.state.connected = false
+                this.#rf.event.holder.forEach(({ e, h }) =>
+                {
+                    this.removeEventListener(e, h)
+                })
+                this.#rf.event.type = []
+                this.#rf.event.holder = []
+                this.#rf.target.sync = []
+                this.#rf.target.api = []
+            }
 
-        disconnectedCallback () { }
+            // -------------------- Private API
 
-        // Optional public API method for manual triggering
-        api (command)
-        {
-            console.log('trigger api')
-            if (command === 'trigger') {
-                document.querySelector(`[rf-sync="${this.#target_sync}"]`).api(this.#target_api)
+            #destroy ()
+            {
+                this.remove()
+            }
+
+            // -------------------- Public API
+
+            api (action)
+            {
+                switch (action) {
+                    case 'destroy':
+                        this.#destroy()
+                        break
+                    default:
+                        break
+                }
             }
         }
-    }
+
+        return { Modal_01, Icon_01, Trigger_01 }
+    })()
 
     rf.lib.load(['gsap']).then(() =>
     {
         customElements.define('redflow-modal-01', rf.component.Modal_01)
         customElements.define('redflow-icon-01', rf.component.Icon_01)
-        customElements.define('redflow-trigger-01', Trigger_01)
+        customElements.define('redflow-trigger-01', rf.component.Trigger_01)
     })
 }
 
