@@ -7,7 +7,7 @@ function RedFlow ()
 
     RedFlow.instance = (() =>
     {
-        if (RedFlow.instance) throw new Error("You can have only one instance of RedFlow")
+        if (RedFlow.instance) throw new Error("You can have only one instance of ⭕ RedFlow")
 
         const creditInfo = {
             commentTop:
@@ -208,111 +208,6 @@ function RedFlow ()
             }
         }
 
-        class Trigger_01 extends HTMLElement {
-            // -------------------- Attribute
-            #rf = {
-                event: {
-                    type: [],
-                    holder: [], // to prevent memory leak
-                },
-                target: {
-                    sync: [],
-                    api: [],
-                },
-                state: {
-                    connected: false,
-                },
-            }
-
-            // -------------------- Trigger
-
-            constructor() {
-                super()
-            }
-
-            static get observedAttributes() {
-                return ['rf-event-type', 'rf-target-sync', 'rf-target-api']
-            }
-
-            attributeChangedCallback(name, oldValue, newValue) {
-                if (oldValue === newValue || !this.#st.life.isConnected) return
-                this.#render()
-            }
-
-            connectedCallback() {
-                this.#st.life.isConnected = true
-                this.#render()
-            }
-
-            disconnectedCallback() {
-                this.#clean()
-            }
-
-            // -------------------- Helper
-
-            #render() {
-                // We need this part because if
-                // attributeChangedCallback() calls render() we get memory leak
-                // so we want to make sure to remove old EventListener
-                if (this.#rf.event.holder.length > 0) {
-                    this.#rf.event.holder.forEach(({ e, h }) => {
-                        this.removeEventListener(e, h)
-                    })
-                    this.#rf.event.holder = []
-                }
-
-                this.#rf.event.type = this.getAttribute('rf-event-type')
-                    .split(',')
-                    .map((v) => v.trim())
-                this.#rf.target.sync = this.getAttribute('rf-target-sync')
-                    .split(',')
-                    .map((v) => v.trim())
-                this.#rf.target.api = this.getAttribute('rf-target-api')
-                    .split(',')
-                    .map((v) => v.trim())
-
-                this.#rf.event.type.forEach((ev, i) => {
-                    const listener = () =>
-                        document.querySelector(`[rf-sync="${this.#rf.target.sync[i]}"]`).api(this.#rf.target.api[i])
-                    this.addEventListener(ev, listener)
-
-                    // a list to hold all events added
-                    // so we can remove fro memory leaks
-                    this.#rf.event.holder.push({ e: ev, h: listener })
-                })
-            }
-
-            #clean() {
-                this.#st.life.isConnected = false
-                this.#rf.event.holder.forEach(({ e, h }) => {
-                    this.removeEventListener(e, h)
-                })
-                this.#rf.event.type = []
-                this.#rf.event.holder = []
-                this.#rf.target.sync = []
-                this.#rf.target.api = []
-            }
-
-            // -------------------- Private API
-
-            #destroy() {
-                this.remove()
-            }
-
-            // -------------------- Public API
-
-            api(action) {
-                switch (action) {
-                    case 'destroy':
-                        this.#destroy()
-                        break
-                    default:
-                        break
-                }
-            }
-        }
-
-
 */
 
         // Utility: Debounce Function
@@ -358,6 +253,119 @@ function RedFlow ()
         // ----------------------------------------------------------------------------------------------------------
         // ----------------------------------------------------------------------------------------------------------
         // ----------------------------------------------------------------------------------------------------------
+
+        class Trigger_01 extends HTMLElement
+        {
+            //--------------------------------------------
+            // ------------------------------------- STATE
+
+            //---------------------- state ( private )
+
+            #st = { life: { isConnected: null, eventCache: [] } }
+
+            //---------------------- api (private)
+
+            #rf = { trigger: { type: [] }, target: { sync: [], api: [], } }
+
+
+            //--------------------------------------------
+            // ----------------------------------- TRIGGER
+
+            //---------------------- trigger ( callback )
+
+            constructor()
+            {
+                super()
+            }
+
+            static get observedAttributes ()
+            {
+                return ['rf-trigger-type', 'rf-target-sync', 'rf-target-api']
+            }
+
+            attributeChangedCallback ()
+            {
+                // -- Empty
+                // -- Reminder - if you will add triggerFire here, it will create new listener. 
+                //
+            }
+
+            connectedCallback ()
+            {
+                // -- Trigger Attribute
+
+                this.#fn.triggerAttr()
+
+                // -- Trigger Create
+
+                this.#fn.triggerCreate()
+
+                // -- Element is Connected, now ChangedCallback works
+
+                this.#st.life.isConnected = true
+            }
+
+            disconnectedCallback ()
+            {
+                this.#fn.clearLeak()
+            }
+
+            // -------------------- Helper
+
+            #fn = {
+
+                triggerAttr: () =>
+                {
+                    this.#rf.trigger.type = this.getAttribute('rf-trigger-type')
+                        .split(',')
+                        .map((v) => v.trim())
+                    this.#rf.target.sync = this.getAttribute('rf-target-sync')
+                        .split(',')
+                        .map((v) => v.trim())
+                    this.#rf.target.api = this.getAttribute('rf-target-api')
+                        .split(',')
+                        .map((v) => v.trim())
+                },
+                triggerCreate: () =>
+                {
+                    // -- For each event exist
+                    // -- 1- find ist target
+                    // -- 2- access the api method
+
+                    this.#rf.trigger.type.forEach((trigger, i) =>
+                    {
+                        const targetElement = document.querySelector(`[rf-sync="${this.#rf.target.sync[i]}"]`)
+                        const fire = () => targetElement?.api(this.#rf.target.api[i])
+
+                        this.addEventListener(trigger, fire)
+                        this.#st.life.eventCache.push({ trigger, fire })
+                    })
+                },
+                clearLeak: () =>
+                {
+                    this.#st.life.eventCache.forEach(({ trigger, fire }) => this.removeEventListener(trigger, fire))
+
+                    this.#rf.trigger.type = []
+                    this.#rf.target.sync = []
+                    this.#rf.target.api = []
+
+                    this.#st.life.isConnected = null
+                }
+
+            }
+
+            //--------------------------------------------
+            // --------------------------------------- API
+
+            //---------------------- api (private)
+
+            // -- Empty
+
+            //---------------------- api (public)
+
+            // -- Empty
+
+        }
 
         class Icon_01 extends HTMLElement
         {
@@ -718,13 +726,13 @@ function RedFlow ()
             }
         }
 
-        return { Marquee_01, Icon_01 }
+        return { Marquee_01, Icon_01, Trigger_01 }
     })()
 
     rf.lib.load(["gsap"]).then(() =>
     {
         //customElements.define('redflow-modal-01', rf.component.Modal_01)
-        //customElements.define('redflow-trigger-01', rf.component.Trigger_01)
+        customElements.define('redflow-trigger-01', rf.component.Trigger_01)
         customElements.define('redflow-icon-01', rf.component.Icon_01)
         customElements.define("redflow-marquee-01", rf.component.Marquee_01)
     })
