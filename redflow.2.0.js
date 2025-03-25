@@ -142,8 +142,8 @@ function RedFlow ()
             #st = {
                 anim: { init: null, open: null, close: null }, // rf-data
                 ref: { backdrop: null, container: null }, // rf-data
+                life: { animation: null },
                 node: { isConnected: null, },
-                life: { animation: null }
             }
 
             //--------------------------------------------
@@ -167,7 +167,6 @@ function RedFlow ()
             connectedCallback ()
             {
                 this.#do.getAttr()
-
                 this.#do.modal.init()
 
                 this.#st.life.isConnected = true
@@ -176,6 +175,7 @@ function RedFlow ()
             disconnectedCallback ()
             {
                 this.#do.clearLeak()
+
                 this.#st.life.isConnected = false
             }
 
@@ -269,25 +269,22 @@ function RedFlow ()
             }
         }
 
+        // -- ✅ Trigger 01 -- ✨ Version 2.0
 
         class Trigger_01 extends HTMLElement
         {
             //--------------------------------------------
-            // ------------------------------------- STATE
+            // --------------------------- Component State
 
-            //---------------------- state ( private )
-
-            #st = { life: { isConnected: null, eventCache: [] } }
-
-            //---------------------- api (private)
-
-            #rf = { trigger: { type: [] }, target: { sync: [], api: [], } }
-
+            #st = {
+                trigger: { event: null }, // rf-data
+                target: { sync: null, api: null, }, // rf-data
+                life: { events: null },
+                node: { isConnected: null, },
+            }
 
             //--------------------------------------------
-            // ----------------------------------- TRIGGER
-
-            //---------------------- trigger ( callback )
+            // ----------------------- lifecycle callbacks
 
             constructor()
             {
@@ -296,94 +293,78 @@ function RedFlow ()
 
             static get observedAttributes ()
             {
-                return ['rf-trigger-type', 'rf-target-sync', 'rf-target-api']
+                return ['trigger-event', 'target-sync', 'target-api']
             }
 
             attributeChangedCallback ()
             {
                 // -- Empty
-                // -- Reminder - if you will add triggerFire here, it will create new listener. 
-                //
             }
 
             connectedCallback ()
             {
-                // -- Trigger Attribute
-
-                this.#fn.triggerAttr()
-
-                // -- Trigger Create
-
-                this.#fn.triggerCreate()
-
-                // -- Element is Connected, now ChangedCallback works
-
+                this.#do.getAttr()
+                this.#do.trigger.init()
                 this.#st.life.isConnected = true
             }
 
             disconnectedCallback ()
             {
-                this.#fn.clearLeak()
+                this.#do.clearLeak()
+                this.#st.life.isConnected = false
             }
 
             // -------------------- Helper
 
-            #fn = {
+            #do = {
 
-                triggerAttr: () =>
+                getAttr: () =>
                 {
-                    this.#rf.trigger.type = this.getAttribute('rf-trigger-type')
+                    this.#st.trigger.event = this.getAttribute('trigger-event')
                         .split(',')
                         .map((v) => v.trim())
-                    this.#rf.target.sync = this.getAttribute('rf-target-sync')
+                    this.#st.target.sync = this.getAttribute('target-sync')
                         .split(',')
                         .map((v) => v.trim())
-                    this.#rf.target.api = this.getAttribute('rf-target-api')
+                    this.#st.target.api = this.getAttribute('target-api')
                         .split(',')
                         .map((v) => v.trim())
                 },
 
-                triggerCreate: () =>
-                {
-                    // -- For each event exist
-                    // -- 1- find ist target
-                    // -- 2- access the api method
+                trigger: {
 
-                    this.#rf.trigger.type.forEach((trigger, i) =>
+                    init: () =>
                     {
-                        const targetElement = document.querySelector(`[rf-sync="${this.#rf.target.sync[i]}"]`)
-                        const fire = () => targetElement?.api(this.#rf.target.api[i])
+                        this.#st.trigger.event.forEach((event, i) =>
+                        {
+                            const targetElement = document.querySelector(`[sync-id="${this.#st.target.sync[i]}"]`)
+                            const targetApi = () => targetElement?.api(this.#st.target.api[i])
 
-                        this.addEventListener(trigger, fire)
-                        this.#st.life.eventCache.push({ trigger, fire })
-                    })
+                            this.addEventListener(event, targetApi)
+                            this.#st.life.events.push({ event, targetApi })
+                        })
+                    },
                 },
 
                 clearLeak: () =>
                 {
-                    this.#st.life.eventCache.forEach(({ trigger, fire }) => this.removeEventListener(trigger, fire))
+                    this.#st.life.events.forEach(({ event, targetApi }) => this.removeEventListener(event, targetApi))
 
-                    this.#rf.trigger.type = []
-                    this.#rf.target.sync = []
-                    this.#rf.target.api = []
-
-                    this.#st.life.isConnected = null
+                    this.#st.trigger.event = null
+                    this.#st.target.sync = null
+                    this.#st.target.api = null
+                    this.#st.life.events = null
                 }
 
             }
 
             //--------------------------------------------
-            // --------------------------------------- API
-
-            //---------------------- api (private)
-
-            // -- Empty
-
-            //---------------------- api (public)
+            // -------------------------------- Public API
 
             // -- Empty
 
         }
+
 
         class Icon_01 extends HTMLElement
         {

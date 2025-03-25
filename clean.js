@@ -1,13 +1,15 @@
-class Modal_01 extends HTMLElement
+// -- ✅ Trigger 01 -- ✨ Version 2.0
+
+class Trigger_01 extends HTMLElement
 {
     //--------------------------------------------
     // --------------------------- Component State
 
     #st = {
-        anim: { init: null, open: null, close: null }, // rf-data
-        ref: { backdrop: null, container: null }, // rf-data
+        trigger: { event: null }, // rf-data
+        target: { sync: null, api: null, }, // rf-data
         node: { isConnected: null, },
-        life: { animation: null }
+        life: { events: null }
     }
 
     //--------------------------------------------
@@ -20,10 +22,10 @@ class Modal_01 extends HTMLElement
 
     static get observedAttributes ()
     {
-        return ['anim-init', 'anim-open', 'anim-close']
+        return ['trigger-event', 'target-sync', 'target-api']
     }
 
-    attributeChangedCallback (n, o, v)
+    attributeChangedCallback ()
     {
         // -- Empty
     }
@@ -31,8 +33,7 @@ class Modal_01 extends HTMLElement
     connectedCallback ()
     {
         this.#do.getAttr()
-
-        this.#do.modal.init()
+        this.#do.trigger.init()
 
         this.#st.life.isConnected = true
     }
@@ -40,95 +41,60 @@ class Modal_01 extends HTMLElement
     disconnectedCallback ()
     {
         this.#do.clearLeak()
+
         this.#st.life.isConnected = false
     }
 
-    //--------------------------------------------
-    // -------------------------- Private Utilizes
+    // -------------------- Helper
 
     #do = {
 
         getAttr: () =>
         {
-            this.#st.anim.init = JSON.parse(this.getAttribute('anim-init'))
-            this.#st.anim.open = JSON.parse(this.getAttribute('anim-open'))
-            this.#st.anim.close = JSON.parse(this.getAttribute('anim-close'))
+            this.#st.trigger.event = this.getAttribute('trigger-event')
+                .split(',')
+                .map((v) => v.trim())
+            this.#st.target.sync = this.getAttribute('target-sync')
+                .split(',')
+                .map((v) => v.trim())
+            this.#st.target.api = this.getAttribute('target-api')
+                .split(',')
+                .map((v) => v.trim())
         },
 
-        modal: {
+        trigger: {
 
             init: () =>
             {
-                this.#st.ref.backdrop = this.querySelector('[ref-backdrop]')
-                if (this.#st.ref.backdrop) gsap.set(this.#st.ref.backdrop, this.#st.anim.init)
+                // -- Hint :
 
-                this.#st.ref.container = this.querySelector('[ref-container]')
-                if (this.#st.ref.container) gsap.set(this.#st.ref.container, this.#st.anim.init)
+                this.#st.trigger.event.forEach((event, i) =>
+                {
+                    const targetElement = document.querySelector(`[sync-id="${this.#st.target.sync[i]}"]`)
+                    const targetApi = () => targetElement?.api(this.#st.target.api[i])
+
+                    this.addEventListener(event, targetApi)
+                    this.#st.life.eventCache.push({ event, targetApi })
+                })
             },
 
-            open: () =>
-            {
-                this.#st.life.animation?.kill()
-                this.#st.life.animation = gsap.timeline()
-                this.#st.life.animation
-                    .set(this.#st.ref.container, this.#st.anim.init)
-                    .to(this.#st.ref.container, this.#st.anim.open)
-            },
-
-            close: () =>
-            {
-                this.#st.life.animation?.kill()
-                this.#st.life.animation = gsap.timeline()
-                this.#st.life.animation.to(this.#st.ref.container, this.#st.anim.close)
-            },
         },
+
 
         clearLeak: () =>
         {
-            gsap.killTweensOf(this.#st.ref.backdrop)
-            gsap.killTweensOf(this.#st.ref.container)
+            this.#st.life.eventCache.forEach(({ trigger, fire }) => this.removeEventListener(trigger, fire))
 
-            this.#st.life.animation?.kill()
-
-            this.#st.anim.init = null
-            this.#st.anim.open = null
-            this.#st.anim.close = null
-
-            this.#st.ref.backdrop = null
-            this.#st.ref.container = null
-
-            this.#st.life.animation = null
-        },
-
-        api: {
-
-            open: () =>
-            {
-                this.#do.modal.open()
-            },
-
-            close: () =>
-            {
-                this.#do.modal.close()
-            }
-
+            this.#st.trigger.event = []
+            this.#rf.target.sync = []
+            this.#rf.target.api = []
         }
+
     }
 
     //--------------------------------------------
     // -------------------------------- Public API
 
-    api (action)
-    {
-        switch (action) {
-            case 'open':
-                this.#do.api.open()
-                break
-            case 'close':
-                this.#do.api.close()
-                break
-            default:
-                console.warn("Invalid API action:", action)
-        }
-    }
+    // -- Empty
+
 }
