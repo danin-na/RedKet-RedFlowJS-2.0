@@ -7,21 +7,20 @@ function RedFlow ()
 
     RedFlow.instance = (() =>
     {
-        if (RedFlow.instance) throw new Error("You can have only one instance of ⭕ RedFlow")
+        if (RedFlow.instance) throw new Error('You can have only one instance of ⭕ RedFlow')
 
         const creditInfo = {
             commentTop:
-                "⭕ RedFlow - Official Webflow Library by RedKet © 2025 RedKet.\n All rights reserved. Unauthorized copying, modification, or distribution is prohibited.\n Visit: www.RedKet.com | www.Red.Ket",
-            commentBottom:
-                "⭕ RedFlow | OFFICIAL WEBFLOW LIBRARY BY REDKET © 2025 REDKET | WWW.REDKET.COM | WWW.RED.KET",
+                '⭕ RedFlow - Official Webflow Library by RedKet © 2025 RedKet.\n All rights reserved. Unauthorized copying, modification, or distribution is prohibited.\n Visit: www.RedKet.com | www.Red.Ket',
+            commentBottom: '⭕ RedFlow | OFFICIAL WEBFLOW LIBRARY BY REDKET © 2025 REDKET | WWW.REDKET.COM | WWW.RED.KET',
             logMessage: `%cRed%cFlow%c - Official Webflow Library by %cRed%cKet%c\nCopyright © 2025 RedKet. All rights reserved.\nUnauthorized copying, modification, or distribution is prohibited.\nVisit: www.RedKet.com | www.Red.Ket`,
             logStyle: [
-                "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#aaa; background:#000; padding:2px 4px; border-radius:3px;",
-                "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#888; font-size:11px;",
+                'color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#aaa; background:#000; padding:2px 4px; border-radius:3px;',
+                'color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#888; font-size:11px;',
             ],
         }
         document.body.prepend(document.createComment(creditInfo.commentTop))
@@ -37,11 +36,11 @@ function RedFlow ()
 
     rf.lib = (() =>
     {
-        "use strict"
+        'use strict'
 
         const cdn = {
-            gsap: "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/gsap.min.js",
-            jquery: "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js",
+            gsap: 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/gsap.min.js',
+            jquery: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js',
         }
 
         const cacheScript = {}
@@ -54,15 +53,15 @@ function RedFlow ()
                 return cacheScript[url]
             }
             if (!document.querySelector(`link[rel="preload"][href="${url}"]`)) {
-                const link = document.createElement("link")
-                link.rel = "preload"
+                const link = document.createElement('link')
+                link.rel = 'preload'
                 link.href = url
-                link.as = "script"
+                link.as = 'script'
                 document.head.appendChild(link)
             }
             cacheScript[url] = new Promise((resolve) =>
             {
-                const script = document.createElement("script")
+                const script = document.createElement('script')
                 script.src = url
                 script.defer = true
                 script.onload = () =>
@@ -71,7 +70,7 @@ function RedFlow ()
                 }
                 script.onerror = () =>
                 {
-                    console.error(url, "Failed to load")
+                    console.error(url, 'Failed to load')
                     resolve()
                 }
                 document.head.appendChild(script)
@@ -84,8 +83,8 @@ function RedFlow ()
             const promises = libs.map((lib) =>
             {
                 if (cdn[lib]) return loadScript(cdn[lib])
-                if (lib.startsWith("http")) return loadScript(lib)
-                console.error(lib, "Unknown library requested")
+                if (lib.startsWith('http')) return loadScript(lib)
+                console.error(lib, 'Unknown library requested')
                 return Promise.resolve()
             })
             return Promise.all(promises)
@@ -100,7 +99,6 @@ function RedFlow ()
 
     rf.component = (() =>
     {
-
         // Utility: Debounce Function
         function debounce (fn, delay)
         {
@@ -143,7 +141,7 @@ function RedFlow ()
                 anim: { init: null, open: null, close: null }, // rf-data
                 ref: { backdrop: null, container: null }, // rf-data
                 life: { animation: null },
-                node: { isConnected: null, },
+                node: { isConnected: null },
             }
 
             //--------------------------------------------
@@ -168,14 +166,12 @@ function RedFlow ()
             {
                 this.#do.getAttr()
                 this.#do.modal.init()
-
                 this.#st.life.isConnected = true
             }
 
             disconnectedCallback ()
             {
                 this.#do.clearLeak()
-
                 this.#st.life.isConnected = false
             }
 
@@ -183,7 +179,6 @@ function RedFlow ()
             // -------------------------- Private Utilizes
 
             #do = {
-
                 getAttr: () =>
                 {
                     this.#st.anim.init = JSON.parse(this.getAttribute('anim-init'))
@@ -192,7 +187,6 @@ function RedFlow ()
                 },
 
                 modal: {
-
                     init: () =>
                     {
                         this.#st.ref.backdrop = this.querySelector('[ref-backdrop]')
@@ -237,7 +231,6 @@ function RedFlow ()
                 },
 
                 api: {
-
                     open: () =>
                     {
                         this.#do.modal.open()
@@ -246,9 +239,8 @@ function RedFlow ()
                     close: () =>
                     {
                         this.#do.modal.close()
-                    }
-
-                }
+                    },
+                },
             }
 
             //--------------------------------------------
@@ -264,7 +256,7 @@ function RedFlow ()
                         this.#do.api.close()
                         break
                     default:
-                        console.warn("Invalid API action:", action)
+                        console.warn('Invalid API action:', action)
                 }
             }
         }
@@ -278,9 +270,9 @@ function RedFlow ()
 
             #st = {
                 trigger: { event: null }, // rf-data
-                target: { sync: null, api: null, }, // rf-data
-                life: { events: null },
-                node: { isConnected: null, },
+                target: { sync: null, api: null }, // rf-data
+                life: { events: [] },
+                node: { isConnected: null },
             }
 
             //--------------------------------------------
@@ -317,7 +309,6 @@ function RedFlow ()
             // -------------------- Helper
 
             #do = {
-
                 getAttr: () =>
                 {
                     this.#st.trigger.event = this.getAttribute('trigger-event')
@@ -332,7 +323,6 @@ function RedFlow ()
                 },
 
                 trigger: {
-
                     init: () =>
                     {
                         this.#st.trigger.event.forEach((event, i) =>
@@ -354,17 +344,14 @@ function RedFlow ()
                     this.#st.target.sync = null
                     this.#st.target.api = null
                     this.#st.life.events = null
-                }
-
+                },
             }
 
             //--------------------------------------------
             // -------------------------------- Public API
 
             // -- Empty
-
         }
-
 
         class Icon_01 extends HTMLElement
         {
@@ -391,13 +378,12 @@ function RedFlow ()
 
             static get observedAttributes ()
             {
-                return ["rf-svg-source"]
+                return ['rf-svg-source']
             }
 
             attributeChangedCallback (n, o, v)
             {
                 if (o !== v && this.#st.life.isConnected) {
-
                     // -- Icon Attribute
 
                     this.#fn.iconAttr()
@@ -415,7 +401,7 @@ function RedFlow ()
                 this.#fn.iconAttr()
 
                 // -- Get rf-ref
-                this.#rf.ref.container = this.querySelector("[rf-ref-container]")
+                this.#rf.ref.container = this.querySelector('[rf-ref-container]')
                 if (!this.#rf.ref.container) throw new Error('child ref "rf-ref-container" does not exist')
 
                 // -- Icon Render
@@ -435,14 +421,20 @@ function RedFlow ()
             //---------------------- trigger ( util )
 
             #fn = {
-                iconAttr: () => { this.#rf.svg.source = this.getAttribute("rf-svg-source") },
-                iconRender: () => { this.#rf.ref.container.innerHTML = decodeURIComponent(this.#rf.svg.source) },
+                iconAttr: () =>
+                {
+                    this.#rf.svg.source = this.getAttribute('rf-svg-source')
+                },
+                iconRender: () =>
+                {
+                    this.#rf.ref.container.innerHTML = decodeURIComponent(this.#rf.svg.source)
+                },
                 clearLeak: () =>
                 {
                     this.#rf.svg.source = null
                     this.#rf.ref.container = null
                     this.#st.life.isConnected = null
-                }
+                },
             }
 
             //--------------------------------------------
@@ -455,7 +447,6 @@ function RedFlow ()
             //---------------------- api (public)
 
             // -- Empty
-
         }
 
         class Marquee_01 extends HTMLElement
@@ -486,7 +477,7 @@ function RedFlow ()
 
             static get observedAttributes ()
             {
-                return ["rf-anim-ease", "rf-anim-direction", "rf-anim-duration"]
+                return ['rf-anim-ease', 'rf-anim-direction', 'rf-anim-duration']
             }
 
             attributeChangedCallback (n, o, v)
@@ -512,10 +503,8 @@ function RedFlow ()
 
                 this.#fn.animAttr()
 
-
-
                 // -- Get rf-ref / If no tween DOM, Make Clone
-                this.#rf.ref.slider = this.querySelectorAll("[rf-ref-slider]")
+                this.#rf.ref.slider = this.querySelectorAll('[rf-ref-slider]')
 
                 if (!this.#rf.ref.slider || this.#rf.ref.slider.length === 0 || this.#rf.ref.slider.length > 2) {
                     throw new Error('child ref "rf-ref-slider" does not exist or there are too many')
@@ -564,9 +553,9 @@ function RedFlow ()
                 animAttr: () =>
                 {
                     // -- Get rf-anim
-                    this.#rf.anim.ease = this.getAttribute("rf-anim-ease")
-                    this.#rf.anim.duration = parseFloat(this.getAttribute("rf-anim-duration"))
-                    this.#rf.anim.direction = this.getAttribute("rf-anim-direction")
+                    this.#rf.anim.ease = this.getAttribute('rf-anim-ease')
+                    this.#rf.anim.duration = parseFloat(this.getAttribute('rf-anim-duration'))
+                    this.#rf.anim.direction = this.getAttribute('rf-anim-direction')
                 },
 
                 animRender: () =>
@@ -579,16 +568,16 @@ function RedFlow ()
                         this.#st.life.tween = null
                     }
 
-                    this.#rf.ref.slider = this.querySelectorAll("[rf-ref-slider]")
+                    this.#rf.ref.slider = this.querySelectorAll('[rf-ref-slider]')
                     const w = this.#rf.ref.slider[0].getBoundingClientRect().width
 
                     // -- create new animation
 
                     this.#st.life.tween = gsap.fromTo(
                         this.#rf.ref.slider,
-                        { x: this.#rf.anim.direction === "left" ? 0 : -w },
+                        { x: this.#rf.anim.direction === 'left' ? 0 : -w },
                         {
-                            x: this.#rf.anim.direction === "left" ? -w : 0,
+                            x: this.#rf.anim.direction === 'left' ? -w : 0,
                             duration: this.#rf.anim.duration,
                             ease: this.#rf.anim.ease,
                             repeat: -1,
@@ -667,12 +656,12 @@ function RedFlow ()
 
                 setDirection: (direction) =>
                 {
-                    this.setAttribute("rf-anim-direction", direction)
+                    this.setAttribute('rf-anim-direction', direction)
                 },
 
                 setEase: (ease) =>
                 {
-                    this.setAttribute("rf-anim-ease", ease)
+                    this.setAttribute('rf-anim-ease', ease)
                 },
 
                 restart: () =>
@@ -695,32 +684,32 @@ function RedFlow ()
             api (action, params)
             {
                 switch (action) {
-                    case "remove":
+                    case 'remove':
                         this.#api.remove()
                         break
-                    case "pause":
+                    case 'pause':
                         this.#api.pause()
                         break
-                    case "resume":
+                    case 'resume':
                         this.#api.resume()
                         break
-                    case "restart":
+                    case 'restart':
                         this.#api.restart()
                         break
-                    case "setSpeed":
+                    case 'setSpeed':
                         this.#api.setSpeed(params.speedMultiplier)
                         break
-                    case "setDirection":
+                    case 'setDirection':
                         this.#api.setDirection(params.direction)
                         break
-                    case "setEase":
+                    case 'setEase':
                         this.#api.setEase(params.ease)
                         break
-                    case "stop":
+                    case 'stop':
                         this.#api.stop()
                         break
                     default:
-                        console.warn("Invalid API action:", action)
+                        console.warn('Invalid API action:', action)
                 }
             }
         }
@@ -728,20 +717,20 @@ function RedFlow ()
         return { Marquee_01, Icon_01, Trigger_01, Modal_01 }
     })()
 
-    rf.lib.load(["gsap"]).then(() =>
+    rf.lib.load(['gsap']).then(() =>
     {
         customElements.define('redflow-modal-01', rf.component.Modal_01)
         customElements.define('redflow-trigger-01', rf.component.Trigger_01)
         customElements.define('redflow-icon-01', rf.component.Icon_01)
-        customElements.define("redflow-marquee-01", rf.component.Marquee_01)
+        customElements.define('redflow-marquee-01', rf.component.Marquee_01)
     })
 }
 
-document.addEventListener("DOMContentLoaded", () =>
+document.addEventListener('DOMContentLoaded', () =>
 {
     try {
         RedFlow()
     } catch (e) {
-        console.warn("⭕ RedFlow Error :", e)
+        console.warn('⭕ RedFlow Error :', e)
     }
 })
