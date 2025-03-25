@@ -100,115 +100,6 @@ function RedFlow ()
 
     rf.component = (() =>
     {
-        /*
-        class Modal_01 extends HTMLElement {
-            // -------------------- Attribute
-
-            #rf = {
-                anim: {
-                    init: null,
-                    open: null,
-                    close: null,
-                },
-                tag: {
-                    backdrop: null,
-                    container: null,
-                },
-                state: {
-                    animation: null,
-                    connected: false,
-                },
-            }
-
-            // -------------------- Trigger
-
-            constructor() {
-                super()
-            }
-
-            static get observedAttributes() {
-                return ['rf-anim-init', 'rf-anim-open', 'rf-anim-close']
-            }
-
-            attributeChangedCallback(name, oldValue, newValue) {
-                if (oldValue === newValue || !this.#st.life.isConnected) return
-                this.#render()
-            }
-
-            connectedCallback() {
-                this.#st.life.isConnected = true
-                this.#rf.tag.backdrop = this.querySelector('[rf-tag-backdrop]')
-                this.#rf.tag.container = this.querySelector('[rf-tag-container]')
-                this.#render()
-            }
-
-            disconnectedCallback() {
-                this.#clean()
-            }
-
-            // -------------------- util
-
-            #render() {
-                this.#rf.anim.init = JSON.parse(this.getAttribute('rf-anim-init'))
-                this.#rf.anim.open = JSON.parse(this.getAttribute('rf-anim-open'))
-                this.#rf.anim.close = JSON.parse(this.getAttribute('rf-anim-close'))
-                gsap.set(this.#rf.tag.backdrop, this.#rf.anim.init)
-                gsap.set(this.#rf.tag.container, this.#rf.anim.init)
-            }
-
-            #clean() {
-                this.#st.life.isConnected = false
-                this.#rf.state.animation?.kill()
-                gsap.killTweensOf(this.#rf.tag.backdrop)
-                gsap.killTweensOf(this.#rf.tag.container)
-                this.#rf.anim.init = null
-                this.#rf.anim.open = null
-                this.#rf.anim.close = null
-                this.#rf.tag.backdrop = null
-                this.#rf.tag.container = null
-                this.#rf.state.animation = null
-            }
-
-            // -------------------- Private API
-
-            #open() {
-                this.#rf.state.animation?.kill()
-                this.#rf.state.animation = gsap.timeline()
-                this.#rf.state.animation
-                    .set(this.#rf.tag.container, this.#rf.anim.init)
-                    .to(this.#rf.tag.container, this.#rf.anim.open)
-            }
-
-            #close() {
-                this.#rf.state.animation?.kill()
-                this.#rf.state.animation = gsap.timeline()
-                this.#rf.state.animation.to(this.#rf.tag.container, this.#rf.anim.close)
-            }
-
-            #destroy() {
-                this.remove()
-            }
-
-            // -------------------- Public API
-
-            api(action) {
-                switch (action) {
-                    case 'open':
-                        this.#open()
-                        break
-                    case 'close':
-                        this.#close()
-                        break
-                    case 'destroy':
-                        this.#destroy()
-                        break
-                    default:
-                        break
-                }
-            }
-        }
-
-*/
 
         // Utility: Debounce Function
         function debounce (fn, delay)
@@ -238,21 +129,146 @@ function RedFlow ()
             return observer
         }
 
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
-        // ----------------------------------------------------------------------------------------------------------
+        // --------------------------------------------------------------------------------------------------------
+        // --------------------------------------------------------------------------------------------------------
+
+        // -- ✅ Modal 01 -- ✨ Version 2.0
+
+        class Modal_01 extends HTMLElement
+        {
+            //--------------------------------------------
+            // --------------------------- Component State
+
+            #st = {
+                anim: { init: null, open: null, close: null }, // rf-data
+                ref: { backdrop: null, container: null }, // rf-data
+                node: { isConnected: null, },
+                life: { animation: null }
+            }
+
+            //--------------------------------------------
+            // ----------------------- lifecycle callbacks
+
+            constructor()
+            {
+                super()
+            }
+
+            static get observedAttributes ()
+            {
+                return ['anim-init', 'anim-open', 'anim-close']
+            }
+
+            attributeChangedCallback (n, o, v)
+            {
+                // -- Empty
+            }
+
+            connectedCallback ()
+            {
+                this.#do.getAttr()
+
+                this.#do.modal.init()
+
+                this.#st.life.isConnected = true
+            }
+
+            disconnectedCallback ()
+            {
+                this.#do.clearLeak()
+                this.#st.life.isConnected = false
+            }
+
+            //--------------------------------------------
+            // -------------------------- Private Utilizes
+
+            #do = {
+
+                getAttr: () =>
+                {
+                    this.#st.anim.init = JSON.parse(this.getAttribute('anim-init'))
+                    this.#st.anim.open = JSON.parse(this.getAttribute('anim-open'))
+                    this.#st.anim.close = JSON.parse(this.getAttribute('anim-close'))
+                },
+
+                modal: {
+
+                    init: () =>
+                    {
+                        this.#st.ref.backdrop = this.querySelector('[ref-backdrop]')
+                        if (this.#st.ref.backdrop) gsap.set(this.#st.ref.backdrop, this.#st.anim.init)
+
+                        this.#st.ref.container = this.querySelector('[ref-container]')
+                        if (this.#st.ref.container) gsap.set(this.#st.ref.container, this.#st.anim.init)
+                    },
+
+                    open: () =>
+                    {
+                        this.#st.life.animation?.kill()
+                        this.#st.life.animation = gsap.timeline()
+                        this.#st.life.animation
+                            .set(this.#st.ref.container, this.#st.anim.init)
+                            .to(this.#st.ref.container, this.#st.anim.open)
+                    },
+
+                    close: () =>
+                    {
+                        this.#st.life.animation?.kill()
+                        this.#st.life.animation = gsap.timeline()
+                        this.#st.life.animation.to(this.#st.ref.container, this.#st.anim.close)
+                    },
+                },
+
+                clearLeak: () =>
+                {
+                    gsap.killTweensOf(this.#st.ref.backdrop)
+                    gsap.killTweensOf(this.#st.ref.container)
+
+                    this.#st.life.animation?.kill()
+
+                    this.#st.anim.init = null
+                    this.#st.anim.open = null
+                    this.#st.anim.close = null
+
+                    this.#st.ref.backdrop = null
+                    this.#st.ref.container = null
+
+                    this.#st.life.animation = null
+                },
+
+                api: {
+
+                    open: () =>
+                    {
+                        this.#do.modal.open()
+                    },
+
+                    close: () =>
+                    {
+                        this.#do.modal.close()
+                    }
+
+                }
+            }
+
+            //--------------------------------------------
+            // -------------------------------- Public API
+
+            api (action)
+            {
+                switch (action) {
+                    case 'open':
+                        this.#do.api.open()
+                        break
+                    case 'close':
+                        this.#do.api.close()
+                        break
+                    default:
+                        console.warn("Invalid API action:", action)
+                }
+            }
+        }
+
 
         class Trigger_01 extends HTMLElement
         {
@@ -326,6 +342,7 @@ function RedFlow ()
                         .split(',')
                         .map((v) => v.trim())
                 },
+
                 triggerCreate: () =>
                 {
                     // -- For each event exist
@@ -341,6 +358,7 @@ function RedFlow ()
                         this.#st.life.eventCache.push({ trigger, fire })
                     })
                 },
+
                 clearLeak: () =>
                 {
                     this.#st.life.eventCache.forEach(({ trigger, fire }) => this.removeEventListener(trigger, fire))
@@ -726,12 +744,12 @@ function RedFlow ()
             }
         }
 
-        return { Marquee_01, Icon_01, Trigger_01 }
+        return { Marquee_01, Icon_01, Trigger_01, Modal_01 }
     })()
 
     rf.lib.load(["gsap"]).then(() =>
     {
-        //customElements.define('redflow-modal-01', rf.component.Modal_01)
+        customElements.define('redflow-modal-01', rf.component.Modal_01)
         customElements.define('redflow-trigger-01', rf.component.Trigger_01)
         customElements.define('redflow-icon-01', rf.component.Icon_01)
         customElements.define("redflow-marquee-01", rf.component.Marquee_01)
@@ -743,6 +761,6 @@ document.addEventListener("DOMContentLoaded", () =>
     try {
         RedFlow()
     } catch (e) {
-        console.warn("sssss", e)
+        console.warn("⭕ RedFlow Error :", e)
     }
 })
