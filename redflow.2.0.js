@@ -7,21 +7,20 @@ function RedFlow ()
 
     RedFlow.instance = (() =>
     {
-        if (RedFlow.instance) throw new Error("You can have only one instance of RedFlow")
+        if (RedFlow.instance) throw new Error('You can have only one instance of RedFlow')
 
         const creditInfo = {
             commentTop:
-                "⭕ RedFlow - Official Webflow Library by RedKet © 2025 RedKet.\n All rights reserved. Unauthorized copying, modification, or distribution is prohibited.\n Visit: www.RedKet.com | www.Red.Ket",
-            commentBottom:
-                "⭕ RedFlow | OFFICIAL WEBFLOW LIBRARY BY REDKET © 2025 REDKET | WWW.REDKET.COM | WWW.RED.KET",
+                '⭕ RedFlow - Official Webflow Library by RedKet © 2025 RedKet.\n All rights reserved. Unauthorized copying, modification, or distribution is prohibited.\n Visit: www.RedKet.com | www.Red.Ket',
+            commentBottom: '⭕ RedFlow | OFFICIAL WEBFLOW LIBRARY BY REDKET © 2025 REDKET | WWW.REDKET.COM | WWW.RED.KET',
             logMessage: `%cRed%cFlow%c - Official Webflow Library by %cRed%cKet%c\nCopyright © 2025 RedKet. All rights reserved.\nUnauthorized copying, modification, or distribution is prohibited.\nVisit: www.RedKet.com | www.Red.Ket`,
             logStyle: [
-                "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#aaa; background:#000; padding:2px 4px; border-radius:3px;",
-                "color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;",
-                "color:#888; font-size:11px;",
+                'color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#aaa; background:#000; padding:2px 4px; border-radius:3px;',
+                'color:#c33; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#dfdfdf; background:#000; font-weight:bold; padding:2px 4px; border-radius:3px;',
+                'color:#888; font-size:11px;',
             ],
         }
         document.body.prepend(document.createComment(creditInfo.commentTop))
@@ -33,51 +32,15 @@ function RedFlow ()
 
     const rf = {}
 
-    // ------------- RedFlow log
-
-    rf.log = (() =>
-    {
-        "use strict"
-
-        function error (context, message)
-        {
-            console.error(`💢 ERROR → ⭕ RedFlow → ${context} →`, message)
-        }
-
-        function success (context, message)
-        {
-            console.log(`✅ SUCCESS → ⭕ RedFlow → ${context} →`, message)
-        }
-
-        function info (context, message)
-        {
-            console.info(`❔ INFO → ⭕ RedFlow → ${context} →`, message)
-        }
-
-        function warn (context, message)
-        {
-            console.warn(`⚠️ WARN → ⭕ RedFlow → ${context} →`, message)
-        }
-
-        function debug (context, message)
-        {
-            console.debug(`🐞 DEBUG → ⭕ RedFlow → ${context} →`, message)
-        }
-
-        // ------------------------------ Public API
-
-        return { error, success, info, warn, debug }
-    })()
-
     // ------------- RedFlow lib
 
     rf.lib = (() =>
     {
-        "use strict"
+        'use strict'
 
         const cdn = {
-            gsap: "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/gsap.min.js",
-            jquery: "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js",
+            gsap: 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/gsap.min.js',
+            jquery: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js',
         }
 
         const cacheScript = {}
@@ -90,25 +53,24 @@ function RedFlow ()
                 return cacheScript[url]
             }
             if (!document.querySelector(`link[rel="preload"][href="${url}"]`)) {
-                const link = document.createElement("link")
-                link.rel = "preload"
+                const link = document.createElement('link')
+                link.rel = 'preload'
                 link.href = url
-                link.as = "script"
+                link.as = 'script'
                 document.head.appendChild(link)
             }
             cacheScript[url] = new Promise((resolve) =>
             {
-                const script = document.createElement("script")
+                const script = document.createElement('script')
                 script.src = url
                 script.defer = true
                 script.onload = () =>
                 {
-                    rf.log.success(url, "Loaded")
                     resolve()
                 }
                 script.onerror = () =>
                 {
-                    rf.log.error(url, "Failed to load")
+                    console.error(url, 'Failed to load')
                     resolve()
                 }
                 document.head.appendChild(script)
@@ -121,8 +83,8 @@ function RedFlow ()
             const promises = libs.map((lib) =>
             {
                 if (cdn[lib]) return loadScript(cdn[lib])
-                if (lib.startsWith("http")) return loadScript(lib)
-                rf.log.warn(lib, "Unknown library requested")
+                if (lib.startsWith('http')) return loadScript(lib)
+                console.error(lib, 'Unknown library requested')
                 return Promise.resolve()
             })
             return Promise.all(promises)
@@ -137,8 +99,8 @@ function RedFlow ()
 
     rf.component = (() =>
     {
-        class Modal_01 extends HTMLElement
-        {
+        /*
+        class Modal_01 extends HTMLElement {
             // -------------------- Attribute
 
             #rf = {
@@ -159,48 +121,41 @@ function RedFlow ()
 
             // -------------------- Trigger
 
-            constructor()
-            {
+            constructor() {
                 super()
             }
 
-            static get observedAttributes ()
-            {
-                return ["rf-anim-init", "rf-anim-open", "rf-anim-close"]
+            static get observedAttributes() {
+                return ['rf-anim-init', 'rf-anim-open', 'rf-anim-close']
             }
 
-            attributeChangedCallback (name, oldValue, newValue)
-            {
+            attributeChangedCallback(name, oldValue, newValue) {
                 if (oldValue === newValue || !this.#rf.state.connected) return
                 this.#render()
             }
 
-            connectedCallback ()
-            {
+            connectedCallback() {
                 this.#rf.state.connected = true
-                this.#rf.tag.backdrop = this.querySelector("[rf-tag-backdrop]")
-                this.#rf.tag.container = this.querySelector("[rf-tag-container]")
+                this.#rf.tag.backdrop = this.querySelector('[rf-tag-backdrop]')
+                this.#rf.tag.container = this.querySelector('[rf-tag-container]')
                 this.#render()
             }
 
-            disconnectedCallback ()
-            {
+            disconnectedCallback() {
                 this.#clean()
             }
 
             // -------------------- util
 
-            #render ()
-            {
-                this.#rf.anim.init = JSON.parse(this.getAttribute("rf-anim-init"))
-                this.#rf.anim.open = JSON.parse(this.getAttribute("rf-anim-open"))
-                this.#rf.anim.close = JSON.parse(this.getAttribute("rf-anim-close"))
+            #render() {
+                this.#rf.anim.init = JSON.parse(this.getAttribute('rf-anim-init'))
+                this.#rf.anim.open = JSON.parse(this.getAttribute('rf-anim-open'))
+                this.#rf.anim.close = JSON.parse(this.getAttribute('rf-anim-close'))
                 gsap.set(this.#rf.tag.backdrop, this.#rf.anim.init)
                 gsap.set(this.#rf.tag.container, this.#rf.anim.init)
             }
 
-            #clean ()
-            {
+            #clean() {
                 this.#rf.state.connected = false
                 this.#rf.state.animation?.kill()
                 gsap.killTweensOf(this.#rf.tag.backdrop)
@@ -215,8 +170,7 @@ function RedFlow ()
 
             // -------------------- Private API
 
-            #open ()
-            {
+            #open() {
                 this.#rf.state.animation?.kill()
                 this.#rf.state.animation = gsap.timeline()
                 this.#rf.state.animation
@@ -224,30 +178,27 @@ function RedFlow ()
                     .to(this.#rf.tag.container, this.#rf.anim.open)
             }
 
-            #close ()
-            {
+            #close() {
                 this.#rf.state.animation?.kill()
                 this.#rf.state.animation = gsap.timeline()
                 this.#rf.state.animation.to(this.#rf.tag.container, this.#rf.anim.close)
             }
 
-            #destroy ()
-            {
+            #destroy() {
                 this.remove()
             }
 
             // -------------------- Public API
 
-            api (action)
-            {
+            api(action) {
                 switch (action) {
-                    case "open":
+                    case 'open':
                         this.#open()
                         break
-                    case "close":
+                    case 'close':
                         this.#close()
                         break
-                    case "destroy":
+                    case 'destroy':
                         this.#destroy()
                         break
                     default:
@@ -256,8 +207,7 @@ function RedFlow ()
             }
         }
 
-        class Trigger_01 extends HTMLElement
-        {
+        class Trigger_01 extends HTMLElement {
             // -------------------- Attribute
             #rf = {
                 event: {
@@ -275,60 +225,52 @@ function RedFlow ()
 
             // -------------------- Trigger
 
-            constructor()
-            {
+            constructor() {
                 super()
             }
 
-            static get observedAttributes ()
-            {
-                return ["rf-event-type", "rf-target-sync", "rf-target-api"]
+            static get observedAttributes() {
+                return ['rf-event-type', 'rf-target-sync', 'rf-target-api']
             }
 
-            attributeChangedCallback (name, oldValue, newValue)
-            {
+            attributeChangedCallback(name, oldValue, newValue) {
                 if (oldValue === newValue || !this.#rf.state.connected) return
                 this.#render()
             }
 
-            connectedCallback ()
-            {
+            connectedCallback() {
                 this.#rf.state.connected = true
                 this.#render()
             }
 
-            disconnectedCallback ()
-            {
+            disconnectedCallback() {
                 this.#clean()
             }
 
             // -------------------- Helper
 
-            #render ()
-            {
+            #render() {
                 // We need this part because if
                 // attributeChangedCallback() calls render() we get memory leak
                 // so we want to make sure to remove old EventListener
                 if (this.#rf.event.holder.length > 0) {
-                    this.#rf.event.holder.forEach(({ e, h }) =>
-                    {
+                    this.#rf.event.holder.forEach(({ e, h }) => {
                         this.removeEventListener(e, h)
                     })
                     this.#rf.event.holder = []
                 }
 
-                this.#rf.event.type = this.getAttribute("rf-event-type")
-                    .split(",")
+                this.#rf.event.type = this.getAttribute('rf-event-type')
+                    .split(',')
                     .map((v) => v.trim())
-                this.#rf.target.sync = this.getAttribute("rf-target-sync")
-                    .split(",")
+                this.#rf.target.sync = this.getAttribute('rf-target-sync')
+                    .split(',')
                     .map((v) => v.trim())
-                this.#rf.target.api = this.getAttribute("rf-target-api")
-                    .split(",")
+                this.#rf.target.api = this.getAttribute('rf-target-api')
+                    .split(',')
                     .map((v) => v.trim())
 
-                this.#rf.event.type.forEach((ev, i) =>
-                {
+                this.#rf.event.type.forEach((ev, i) => {
                     const listener = () =>
                         document.querySelector(`[rf-sync="${this.#rf.target.sync[i]}"]`).api(this.#rf.target.api[i])
                     this.addEventListener(ev, listener)
@@ -339,11 +281,9 @@ function RedFlow ()
                 })
             }
 
-            #clean ()
-            {
+            #clean() {
                 this.#rf.state.connected = false
-                this.#rf.event.holder.forEach(({ e, h }) =>
-                {
+                this.#rf.event.holder.forEach(({ e, h }) => {
                     this.removeEventListener(e, h)
                 })
                 this.#rf.event.type = []
@@ -354,17 +294,15 @@ function RedFlow ()
 
             // -------------------- Private API
 
-            #destroy ()
-            {
+            #destroy() {
                 this.remove()
             }
 
             // -------------------- Public API
 
-            api (action)
-            {
+            api(action) {
                 switch (action) {
-                    case "destroy":
+                    case 'destroy':
                         this.#destroy()
                         break
                     default:
@@ -373,7 +311,7 @@ function RedFlow ()
             }
         }
 
-        /*
+    	
         class Icon_01 extends HTMLElement
         {
             //--------------------------------------------
@@ -404,8 +342,8 @@ function RedFlow ()
 
             attributeChangedCallback (n, o, v)
             {
-                if (o !== v && this.#st.life.isConnected) this.#util.getAttr();
-                this.#util.renderComp()
+                if (o !== v && this.#st.life.isConnected) this.#fn.getAttr();
+                this.#fn.renderComp()
             }
 
             connectedCallback ()
@@ -417,8 +355,8 @@ function RedFlow ()
 
                 // -- Render
 
-                this.#util.getAttr();
-                this.#util.renderComp()
+                this.#fn.getAttr();
+                this.#fn.renderComp()
                 this.#rf.state.connected = true
             }
 
@@ -466,6 +404,33 @@ function RedFlow ()
             }
         }
 */
+
+        // Utility: Debounce Function
+        function debounce (fn, delay)
+        {
+            let timer
+            return function (...args)
+            {
+                clearTimeout(timer)
+                timer = setTimeout(() => fn.apply(this, args), delay)
+            }
+        }
+
+        function observe_Resize (element, callback, delay = 400)
+        {
+            const debouncedCallback = debounce(callback, delay)
+            const observer = new ResizeObserver(debouncedCallback)
+            observer.observe(element)
+            return observer
+        }
+
+        function observe_Intersect (element, callback, threshold = 0)
+        {
+            const observer = new IntersectionObserver((entries) => entries.forEach((entry) => callback(entry)), { threshold })
+            observer.observe(element)
+            return observer
+        }
+
         class Marquee_01 extends HTMLElement
         {
             //--------------------------------------------
@@ -494,20 +459,19 @@ function RedFlow ()
 
             static get observedAttributes ()
             {
-                return ["rf-anim-ease", "rf-anim-direction", "rf-anim-duration"]
+                return ['rf-anim-ease', 'rf-anim-direction', 'rf-anim-duration']
             }
 
             attributeChangedCallback (n, o, v)
             {
                 if (o !== v && this.#st.life.isConnected) {
-
                     // -- Animation Attribute
 
-                    this.#util.animAttr()
+                    this.#fn.animAttr()
 
                     // -- Animation Render
 
-                    this.#util.animRender()
+                    this.#fn.animRender()
 
                     // -- If not intersected, Pause
 
@@ -519,7 +483,7 @@ function RedFlow ()
             {
                 // -- Animation Attribute
 
-                this.#util.animAttr()
+                this.#fn.animAttr()
 
                 // -- If no tween DOM, Make Clone
 
@@ -531,91 +495,51 @@ function RedFlow ()
 
                 // -- Animation Render
 
-                this.#util.animRender()
+                this.#fn.animRender()
 
-                //TODO ask gpt if we can move this to util
-
-                const debounce = (fn, delay) =>
+                // -- Observer : Resize - Debounce
+                this.#st.observe.resize = observe_Resize(this, () =>
                 {
-                    let timer
-                    return (...args) =>
-                    {
-                        clearTimeout(timer)
-                        timer = setTimeout(() => fn.apply(this, args), delay)
+                    this.#fn.animRender()
+                    if (!this.#st.observe.isIntersecting) {
+                        this.#st.life.tween.pause()
                     }
-                }
-
-
-                //TODO if we can move this outside of class as general Function
-
-                // -- Observer : Resize - Debounce 
-
-                const resizeDebounce = debounce(() =>
-                {
-                    // -- Animation Render
-
-                    this.#util.animRender()
-
-                    // -- If not intersected, Pause
-
-                    if (!this.#st.observe.isIntersecting) this.#st.life.tween.pause()
-
-                }, 400)
-
-                // -- Observer : Resize Implement
-
-                this.#st.observe.resize = new ResizeObserver(() =>
-                {
-                    resizeDebounce()
                 })
-
-                this.#st.observe.resize.observe(this)
 
                 // -- Observer - Intersect Implement
 
-                this.#st.observe.intersecting = new IntersectionObserver(
-                    (entries) =>
-                    {
-                        entries.forEach((entry) =>
-                        {
-                            this.#st.observe.isIntersecting = entry.isIntersecting
-
-                            if (entry.isIntersecting && this.#st.life.tween && !this.#st.life.tween.isActive()) {
-                                this.#st.life.tween.resume()
-                            }
-                            else if (this.#st.life.tween && this.#st.life.tween.isActive()) {
-                                this.#st.life.tween.pause()
-                            }
-                        })
-                    },
-                    { threshold: 0.1 } //TODO Please explain what this threshold: 0.1 does
-                )
-
-                this.#st.observe.intersecting.observe(this)
+                this.#st.observe.intersecting = observe_Intersect(this, (entry) =>
+                {
+                    this.#st.observe.isIntersecting = entry.isIntersecting
+                    if (entry.isIntersecting && this.#st.life.tween && !this.#st.life.tween.isActive()) {
+                        this.#st.life.tween.resume()
+                    } else if (this.#st.life.tween && this.#st.life.tween.isActive()) {
+                        this.#st.life.tween.pause()
+                    }
+                })
 
                 // -- Element is Connected, now ChangedCallback works
 
                 this.#st.life.isConnected = true
-
             }
 
             disconnectedCallback ()
             {
-                this.#util.clearLeak()
+                this.#fn.clearLeak()
             }
 
             //---------------------- trigger ( utility )
 
-            #util = {
+            #fn = {
                 animAttr: () =>
                 {
                     // -- Get rf-anim
-                    this.#rf.anim.ease = this.getAttribute("rf-anim-ease")
-                    this.#rf.anim.duration = parseFloat(this.getAttribute("rf-anim-duration"))
-                    this.#rf.anim.direction = this.getAttribute("rf-anim-direction")
+                    this.#rf.anim.ease = this.getAttribute('rf-anim-ease')
+                    this.#rf.anim.duration = parseFloat(this.getAttribute('rf-anim-duration'))
+                    this.#rf.anim.direction = this.getAttribute('rf-anim-direction')
 
                     // -- Get rf-ref
-                    this.#rf.ref.slider = this.querySelectorAll("[rf-ref-slider]")
+                    this.#rf.ref.slider = this.querySelectorAll('[rf-ref-slider]')
                 },
 
                 animRender: () =>
@@ -628,16 +552,16 @@ function RedFlow ()
                         this.#st.life.tween = null
                     }
 
-                    this.#rf.ref.slider = this.querySelectorAll("[rf-ref-slider]")
+                    this.#rf.ref.slider = this.querySelectorAll('[rf-ref-slider]')
                     const w = this.#rf.ref.slider[0].getBoundingClientRect().width
 
                     // -- create new animation
 
                     this.#st.life.tween = gsap.fromTo(
                         this.#rf.ref.slider,
-                        { x: this.#rf.anim.direction === "left" ? 0 : -w },
+                        { x: this.#rf.anim.direction === 'left' ? 0 : -w },
                         {
-                            x: this.#rf.anim.direction === "left" ? -w : 0,
+                            x: this.#rf.anim.direction === 'left' ? -w : 0,
                             duration: this.#rf.anim.duration,
                             ease: this.#rf.anim.ease,
                             repeat: -1,
@@ -654,13 +578,13 @@ function RedFlow ()
                     // -- Clear Memory Leak
                     if (this.#st.life.tween) this.#st.life.tween.progress(0).kill()
 
-                    // ALL CAPS: REMOVED RESIZE OBSERVER CODE ON DISCONNECT
+                    // Disconnect ResizeObserver
                     if (this.#st.observe.resize) {
                         this.#st.observe.resize.disconnect()
                         this.#st.observe.resize = null
                     }
 
-                    // ALL CAPS: REMOVED INTERSECTION OBSERVER CODE ON DISCONNECT
+                    // Disconnect IntersectionObserver
                     if (this.#st.observe.intersecting) {
                         this.#st.observe.intersecting.disconnect()
                         this.#st.observe.intersecting = null
@@ -716,12 +640,12 @@ function RedFlow ()
 
                 setDirection: (direction) =>
                 {
-                    this.setAttribute("rf-anim-direction", direction)
+                    this.setAttribute('rf-anim-direction', direction)
                 },
 
                 setEase: (ease) =>
                 {
-                    this.setAttribute("rf-anim-ease", ease)
+                    this.setAttribute('rf-anim-ease', ease)
                 },
 
                 restart: () =>
@@ -744,32 +668,32 @@ function RedFlow ()
             api (action, params)
             {
                 switch (action) {
-                    case "remove":
+                    case 'remove':
                         this.#api.remove()
                         break
-                    case "pause":
+                    case 'pause':
                         this.#api.pause()
                         break
-                    case "resume":
+                    case 'resume':
                         this.#api.resume()
                         break
-                    case "restart":
+                    case 'restart':
                         this.#api.restart()
                         break
-                    case "setSpeed":
+                    case 'setSpeed':
                         this.#api.setSpeed(params.speedMultiplier)
                         break
-                    case "setDirection":
+                    case 'setDirection':
                         this.#api.setDirection(params.direction)
                         break
-                    case "setEase":
+                    case 'setEase':
                         this.#api.setEase(params.ease)
                         break
-                    case "stop":
+                    case 'stop':
                         this.#api.stop()
                         break
                     default:
-                        console.warn("Invalid API action:", action)
+                        console.warn('Invalid API action:', action)
                 }
             }
         }
@@ -777,22 +701,21 @@ function RedFlow ()
         return { Marquee_01 }
     })()
 
-    rf.lib.load(["gsap"]).then(() =>
+    rf.lib.load(['gsap']).then(() =>
     {
         //customElements.define('redflow-modal-01', rf.component.Modal_01)
-
         //customElements.define('redflow-trigger-01', rf.component.Trigger_01)
         //customElements.define('redflow-icon-01', rf.component.Icon_01)
-        customElements.define("redflow-marquee-01", rf.component.Marquee_01)
+        customElements.define('redflow-marquee-01', rf.component.Marquee_01)
     })
 }
 
-document.addEventListener("DOMContentLoaded", () =>
+document.addEventListener('DOMContentLoaded', () =>
 {
     try {
         const instance1 = RedFlow()
         //const instance2 = RedFlow()
     } catch (e) {
-        console.warn("sssss", e)
+        console.warn('sssss', e)
     }
 })
