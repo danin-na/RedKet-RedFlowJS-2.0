@@ -138,10 +138,11 @@ function RedFlow ()
             // --------------------------- Component State
 
             #st = {
+                sync: { group: null },
                 anim: { init: null, open: null, close: null }, // rf-data
-                ref: { backdrop: null, container: null }, // rf-data
+                ref: { trigger: null, backdrop: null, container: null, close: null }, // rf-data
                 life: { animation: null },
-                node: { isConnected: null },
+                node: { isConnected: null, isOpen: false },
             }
 
             //--------------------------------------------
@@ -154,7 +155,7 @@ function RedFlow ()
 
             static get observedAttributes ()
             {
-                return ['anim-init', 'anim-open', 'anim-close']
+                return ['sync-group', 'anim-init', 'anim-open', 'anim-close']
             }
 
             attributeChangedCallback (n, o, v)
@@ -181,6 +182,7 @@ function RedFlow ()
             #do = {
                 getAttr: () =>
                 {
+                    this.#st.sync.group = this.getAttribute('sync-group')
                     this.#st.anim.init = JSON.parse(this.getAttribute('anim-init'))
                     this.#st.anim.open = JSON.parse(this.getAttribute('anim-open'))
                     this.#st.anim.close = JSON.parse(this.getAttribute('anim-close'))
@@ -189,11 +191,35 @@ function RedFlow ()
                 modal: {
                     init: () =>
                     {
+                        this.#st.ref.close = this.querySelector('[ref-close]')
+                        this.#st.ref.close.addEventListener('click', () =>
+                        {
+                            this.#do.api.close()
+                        })
+
+                        this.#st.ref.trigger = this.querySelector('[ref-trigger]')
+                        this.#st.ref.trigger.addEventListener('click', () =>
+                        {
+                            if (this.#st.node.isOpen) {
+                                this.#do.api.close()
+                            } else {
+                                const s = document.querySelectorAll(`[sync-group='${this.#st.sync.group}']`)
+                                s.forEach((element) => element.api('close'))
+                                this.#do.api.open()
+                            }
+                        })
+
                         this.#st.ref.backdrop = this.querySelector('[ref-backdrop]')
                         if (this.#st.ref.backdrop) gsap.set(this.#st.ref.backdrop, this.#st.anim.init)
 
                         this.#st.ref.container = this.querySelector('[ref-container]')
-                        if (this.#st.ref.container) gsap.set(this.#st.ref.container, this.#st.anim.init)
+                        if (this.#st.ref.container) {
+                            this.#st.life.animation?.kill()
+                            this.#st.life.animation = gsap.timeline()
+                            this.#st.life.animation
+                                .set(this.#st.ref.container, { display: 'none' })
+                                .set(this.#st.ref.container, this.#st.anim.init)
+                        }
                     },
 
                     open: () =>
@@ -201,15 +227,22 @@ function RedFlow ()
                         this.#st.life.animation?.kill()
                         this.#st.life.animation = gsap.timeline()
                         this.#st.life.animation
+                            .set(this.#st.ref.container, { display: 'block' })
                             .set(this.#st.ref.container, this.#st.anim.init)
                             .to(this.#st.ref.container, this.#st.anim.open)
+
+                        this.#st.node.isOpen = true
                     },
 
                     close: () =>
                     {
                         this.#st.life.animation?.kill()
                         this.#st.life.animation = gsap.timeline()
-                        this.#st.life.animation.to(this.#st.ref.container, this.#st.anim.close)
+                        this.#st.life.animation
+                            .to(this.#st.ref.container, this.#st.anim.close)
+                            .set(this.#st.ref.container, { display: 'none' })
+
+                        this.#st.node.isOpen = false
                     },
                 },
 
@@ -269,8 +302,8 @@ function RedFlow ()
             // --------------------------- Component State
 
             #st = {
-                trigger: { event: null }, // rf-data
-                target: { sync: null, api: null }, // rf-data
+                trigger: { event: [] }, // rf-data
+                target: { sync: [], api: [] }, // rf-data
                 life: { events: [] },
                 node: { isConnected: null },
             }
@@ -340,10 +373,10 @@ function RedFlow ()
                 {
                     this.#st.life.events.forEach(({ event, targetApi }) => this.removeEventListener(event, targetApi))
 
-                    this.#st.trigger.event = null
-                    this.#st.target.sync = null
-                    this.#st.target.api = null
-                    this.#st.life.events = null
+                    this.#st.trigger.event = []
+                    this.#st.target.sync = []
+                    this.#st.target.api = []
+                    this.#st.life.events = []
                 },
             }
 
