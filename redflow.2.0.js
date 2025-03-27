@@ -100,6 +100,31 @@ function RedFlow ()
     rf.component = (() =>
     {
         // Utility: Debounce Function
+
+        function getAttr (el, attrName)
+        {
+            const attrValue = el.getAttribute(attrName)
+            if (attrValue === null) return null
+
+            const trimmed = attrValue.trim()
+            const lower = trimmed.toLowerCase()
+
+            // Convert boolean-like strings to booleans
+            if (lower === 'true' || lower === 'yes' || lower === 'on') {
+                return true
+            } else if (lower === 'false' || lower === 'no' || lower === 'off') {
+                return false
+            }
+
+            // If it's a number string, convert it to a float
+            if (!isNaN(trimmed) && trimmed !== '') {
+                return parseFloat(trimmed)
+            }
+
+            // Otherwise, return the original trimmed string
+            return trimmed
+        }
+
         function debounce (fn, delay)
         {
             let timer
@@ -110,30 +135,45 @@ function RedFlow ()
             }
         }
 
-        function observe_Resize (element, callback, delay = 400)
+        function observeEvent (element, eventType, callback, cache)
+        {
+            element.addEventListener(eventType, callback)
+            const cleanup = () => element.removeEventListener(eventType, callback)
+            if (cache) {
+                cache.push(cleanup)
+            }
+            return cleanup
+        }
+
+        function observeResize (element, callback, delay = 400, cache)
         {
             const debouncedCallback = debounce(callback, delay)
             const observer = new ResizeObserver(debouncedCallback)
             observer.observe(element)
-            return observer
+            const cleanup = () => observer.disconnect()
+            if (cache) {
+                cache.push(cleanup)
+            }
+            return cleanup
         }
 
-        function observe_Intersect (element, callback, threshold = 0)
+        function observeIntersect (element, callback, threshold = 0, cache)
         {
-            const observer = new IntersectionObserver((entries) => entries.forEach((entry) => callback(entry)), {
-                threshold,
-            })
+            const observer = new IntersectionObserver((entries) => entries.forEach((entry) => callback(entry)), { threshold })
             observer.observe(element)
-            return observer
+            const cleanup = () => observer.disconnect()
+            if (cache) {
+                cache.push(cleanup)
+            }
+            return cleanup
         }
 
         // --------------------------------------------------------------------------------------------------------
         // --------------------------------------------------------------------------------------------------------
 
         // -- ✅ Modal 01 -- ✨ Version 2.0
-
-        class Modal_01 extends HTMLElement
-        {
+        /*
+        class Modal_01 extends HTMLElement {
             //--------------------------------------------
             // --------------------------- Component State
 
@@ -148,30 +188,25 @@ function RedFlow ()
             //--------------------------------------------
             // ----------------------- lifecycle callbacks
 
-            constructor()
-            {
+            constructor() {
                 super()
             }
 
-            static get observedAttributes ()
-            {
+            static get observedAttributes() {
                 return ['sync-group', 'anim-init', 'anim-open', 'anim-close']
             }
 
-            attributeChangedCallback (n, o, v)
-            {
+            attributeChangedCallback(n, o, v) {
                 // -- Empty
             }
 
-            connectedCallback ()
-            {
+            connectedCallback() {
                 this.#do.getAttr()
                 this.#do.modal.init()
                 this.#st.life.isConnected = true
             }
 
-            disconnectedCallback ()
-            {
+            disconnectedCallback() {
                 this.#do.clearLeak()
                 this.#st.life.isConnected = false
             }
@@ -180,8 +215,7 @@ function RedFlow ()
             // -------------------------- Private Utilizes
 
             #do = {
-                getAttr: () =>
-                {
+                getAttr: () => {
                     this.#st.sync.group = this.getAttribute('sync-group')
                     this.#st.anim.init = JSON.parse(this.getAttribute('anim-init'))
                     this.#st.anim.open = JSON.parse(this.getAttribute('anim-open'))
@@ -189,17 +223,14 @@ function RedFlow ()
                 },
 
                 modal: {
-                    init: () =>
-                    {
+                    init: () => {
                         this.#st.ref.close = this.querySelector('[ref-close]')
-                        this.#st.ref.close.addEventListener('click', () =>
-                        {
+                        this.#st.ref.close.addEventListener('click', () => {
                             this.#do.api.close()
                         })
 
                         this.#st.ref.trigger = this.querySelector('[ref-trigger]')
-                        this.#st.ref.trigger.addEventListener('click', () =>
-                        {
+                        this.#st.ref.trigger.addEventListener('click', () => {
                             if (this.#st.node.isOpen) {
                                 this.#do.api.close()
                             } else {
@@ -222,8 +253,7 @@ function RedFlow ()
                         }
                     },
 
-                    open: () =>
-                    {
+                    open: () => {
                         this.#st.life.animation?.kill()
                         this.#st.life.animation = gsap.timeline()
                         this.#st.life.animation
@@ -234,8 +264,7 @@ function RedFlow ()
                         this.#st.node.isOpen = true
                     },
 
-                    close: () =>
-                    {
+                    close: () => {
                         this.#st.life.animation?.kill()
                         this.#st.life.animation = gsap.timeline()
                         this.#st.life.animation
@@ -246,8 +275,7 @@ function RedFlow ()
                     },
                 },
 
-                clearLeak: () =>
-                {
+                clearLeak: () => {
                     gsap.killTweensOf(this.#st.ref.backdrop)
                     gsap.killTweensOf(this.#st.ref.container)
 
@@ -264,13 +292,11 @@ function RedFlow ()
                 },
 
                 api: {
-                    open: () =>
-                    {
+                    open: () => {
                         this.#do.modal.open()
                     },
 
-                    close: () =>
-                    {
+                    close: () => {
                         this.#do.modal.close()
                     },
                 },
@@ -279,8 +305,7 @@ function RedFlow ()
             //--------------------------------------------
             // -------------------------------- Public API
 
-            api (action)
-            {
+            api(action) {
                 switch (action) {
                     case 'open':
                         this.#do.api.open()
@@ -294,10 +319,9 @@ function RedFlow ()
             }
         }
 
-        // -- ✅ Trigger 01 -- ✨ Version 2.0
+    	
 
-        class Trigger_01 extends HTMLElement
-        {
+        class Trigger_01 extends HTMLElement {
             //--------------------------------------------
             // --------------------------- Component State
 
@@ -311,30 +335,25 @@ function RedFlow ()
             //--------------------------------------------
             // ----------------------- lifecycle callbacks
 
-            constructor()
-            {
+            constructor() {
                 super()
             }
 
-            static get observedAttributes ()
-            {
+            static get observedAttributes() {
                 return ['trigger-event', 'target-sync', 'target-api']
             }
 
-            attributeChangedCallback ()
-            {
+            attributeChangedCallback() {
                 // -- Empty
             }
 
-            connectedCallback ()
-            {
+            connectedCallback() {
                 this.#do.getAttr()
                 this.#do.trigger.init()
                 this.#st.life.isConnected = true
             }
 
-            disconnectedCallback ()
-            {
+            disconnectedCallback() {
                 this.#do.clearLeak()
                 this.#st.life.isConnected = false
             }
@@ -342,8 +361,7 @@ function RedFlow ()
             // -------------------- Helper
 
             #do = {
-                getAttr: () =>
-                {
+                getAttr: () => {
                     this.#st.trigger.event = this.getAttribute('trigger-event')
                         .split(',')
                         .map((v) => v.trim())
@@ -356,10 +374,8 @@ function RedFlow ()
                 },
 
                 trigger: {
-                    init: () =>
-                    {
-                        this.#st.trigger.event.forEach((event, i) =>
-                        {
+                    init: () => {
+                        this.#st.trigger.event.forEach((event, i) => {
                             const targetElement = document.querySelector(`[sync-id="${this.#st.target.sync[i]}"]`)
                             const targetApi = () => targetElement?.api(this.#st.target.api[i])
 
@@ -369,8 +385,7 @@ function RedFlow ()
                     },
                 },
 
-                clearLeak: () =>
-                {
+                clearLeak: () => {
                     this.#st.life.events.forEach(({ event, targetApi }) => this.removeEventListener(event, targetApi))
 
                     this.#st.trigger.event = []
@@ -386,8 +401,7 @@ function RedFlow ()
             // -- Empty
         }
 
-        class Icon_01 extends HTMLElement
-        {
+        class Icon_01 extends HTMLElement {
             //--------------------------------------------
             // ------------------------------------- STATE
 
@@ -404,18 +418,15 @@ function RedFlow ()
 
             //---------------------- trigger ( callback )
 
-            constructor()
-            {
+            constructor() {
                 super()
             }
 
-            static get observedAttributes ()
-            {
+            static get observedAttributes() {
                 return ['rf-svg-source']
             }
 
-            attributeChangedCallback (n, o, v)
-            {
+            attributeChangedCallback(n, o, v) {
                 if (o !== v && this.#st.life.isConnected) {
                     // -- Icon Attribute
 
@@ -427,8 +438,7 @@ function RedFlow ()
                 }
             }
 
-            connectedCallback ()
-            {
+            connectedCallback() {
                 // -- Icon Attribute
 
                 this.#fn.iconAttr()
@@ -446,24 +456,20 @@ function RedFlow ()
                 this.#st.life.isConnected = true
             }
 
-            disconnectedCallback ()
-            {
+            disconnectedCallback() {
                 this.#fn.clearLeak()
             }
 
             //---------------------- trigger ( util )
 
             #fn = {
-                iconAttr: () =>
-                {
+                iconAttr: () => {
                     this.#rf.svg.source = this.getAttribute('rf-svg-source')
                 },
-                iconRender: () =>
-                {
+                iconRender: () => {
                     this.#rf.ref.container.innerHTML = decodeURIComponent(this.#rf.svg.source)
                 },
-                clearLeak: () =>
-                {
+                clearLeak: () => {
                     this.#rf.svg.source = null
                     this.#rf.ref.container = null
                     this.#st.life.isConnected = null
@@ -482,8 +488,7 @@ function RedFlow ()
             // -- Empty
         }
 
-        class Marquee_01 extends HTMLElement
-        {
+        class Marquee_01 extends HTMLElement {
             //--------------------------------------------
             // ------------------------------------- STATE
 
@@ -503,18 +508,15 @@ function RedFlow ()
 
             //---------------------- trigger ( callback )
 
-            constructor()
-            {
+            constructor() {
                 super()
             }
 
-            static get observedAttributes ()
-            {
+            static get observedAttributes() {
                 return ['rf-anim-ease', 'rf-anim-direction', 'rf-anim-duration']
             }
 
-            attributeChangedCallback (n, o, v)
-            {
+            attributeChangedCallback(n, o, v) {
                 if (o !== v && this.#st.life.isConnected) {
                     // -- Animation Attribute
 
@@ -530,8 +532,7 @@ function RedFlow ()
                 }
             }
 
-            connectedCallback ()
-            {
+            connectedCallback() {
                 // -- Animation Attribute
 
                 this.#fn.animAttr()
@@ -550,8 +551,7 @@ function RedFlow ()
                 this.#fn.animRender()
 
                 // -- Observer : Resize - Debounce
-                this.#st.observe.resize = observe_Resize(this, () =>
-                {
+                this.#st.observe.resize = observe_Resize(this, () => {
                     this.#fn.animRender()
                     if (!this.#st.observe.isIntersecting) {
                         this.#st.life.tween.pause()
@@ -560,8 +560,7 @@ function RedFlow ()
 
                 // -- Observer - Intersect Implement
 
-                this.#st.observe.intersecting = observe_Intersect(this, (entry) =>
-                {
+                this.#st.observe.intersecting = observe_Intersect(this, (entry) => {
                     this.#st.observe.isIntersecting = entry.isIntersecting
                     if (entry.isIntersecting && this.#st.life.tween && !this.#st.life.tween.isActive()) {
                         this.#st.life.tween.resume()
@@ -575,24 +574,21 @@ function RedFlow ()
                 this.#st.life.isConnected = true
             }
 
-            disconnectedCallback ()
-            {
+            disconnectedCallback() {
                 this.#fn.clearLeak()
             }
 
             //---------------------- trigger ( utility )
 
             #fn = {
-                animAttr: () =>
-                {
+                animAttr: () => {
                     // -- Get rf-anim
                     this.#rf.anim.ease = this.getAttribute('rf-anim-ease')
                     this.#rf.anim.duration = parseFloat(this.getAttribute('rf-anim-duration'))
                     this.#rf.anim.direction = this.getAttribute('rf-anim-direction')
                 },
 
-                animRender: () =>
-                {
+                animRender: () => {
                     // -- kill animation / but save animation position
 
                     if (this.#st.life.tween) {
@@ -622,8 +618,7 @@ function RedFlow ()
                     this.#st.life.tween.progress(this.#st.life.tweenOld)
                 },
 
-                clearLeak: () =>
-                {
+                clearLeak: () => {
                     // -- Clear Memory Leak
                     if (this.#st.life.tween) this.#st.life.tween.progress(0).kill()
 
@@ -661,51 +656,43 @@ function RedFlow ()
             //---------------------- api (private)
 
             #api = {
-                pause: () =>
-                {
+                pause: () => {
                     if (this.#st.life.tween && this.#st.life.tween.isActive()) {
                         this.#st.life.tween.pause()
                     }
                 },
 
-                resume: () =>
-                {
+                resume: () => {
                     if (this.#st.life.tween && !this.#st.life.tween.isActive()) {
                         this.#st.life.tween.resume()
                     }
                 },
 
-                remove: () =>
-                {
+                remove: () => {
                     this.remove()
                 },
 
-                setSpeed: (speedMultiplier) =>
-                {
+                setSpeed: (speedMultiplier) => {
                     if (this.#st.life.tween) {
                         this.#st.life.tween.timeScale(speedMultiplier)
                     }
                 },
 
-                setDirection: (direction) =>
-                {
+                setDirection: (direction) => {
                     this.setAttribute('rf-anim-direction', direction)
                 },
 
-                setEase: (ease) =>
-                {
+                setEase: (ease) => {
                     this.setAttribute('rf-anim-ease', ease)
                 },
 
-                restart: () =>
-                {
+                restart: () => {
                     if (this.#st.life.tween) {
                         this.#st.life.tween.restart()
                     }
                 },
 
-                stop: () =>
-                {
+                stop: () => {
                     if (this.#st.life.tween) {
                         this.#st.life.tween.progress(0).pause()
                     }
@@ -714,8 +701,7 @@ function RedFlow ()
 
             //---------------------- api (public)
 
-            api (action, params)
-            {
+            api(action, params) {
                 switch (action) {
                     case 'remove':
                         this.#api.remove()
@@ -746,16 +732,209 @@ function RedFlow ()
                 }
             }
         }
+        */
 
-        return { Marquee_01, Icon_01, Trigger_01, Modal_01 }
+        // -- ✅ Slider 01 -- ✨ Version 2.0
+
+        class Slider_01 extends HTMLElement
+        {
+            //--------------------------------------------
+            // --------------------------- Component State
+
+            // -- Data RF
+            #loopBack
+            #autoMode
+            #autoTime
+            #slideStep
+            // -- Ref Html
+            #mask
+            #slides
+            #nextBtn
+            #prevBtn
+            // -- Cache Array
+            #cacheClick
+            #cacheResize
+            #cacheInView
+            // -- Node State
+            #inView
+            #connected
+            #gsapTween
+            #autoTimeId
+            #currentSlide
+
+            //--------------------------------------------
+            // ----------------------- lifecycle callbacks
+
+            constructor()
+            {
+                super()
+
+                this.#cacheClick = []
+                this.#cacheResize = []
+                this.#cacheInView = []
+
+                this.#inView = false
+                this.#connected = false
+                this.#gsapTween = 0
+                this.#autoTimeId = 0
+                this.#currentSlide = 0
+
+                this.setAttribute('role', 'region')
+                this.setAttribute('aria-label', 'Image Slider')
+            }
+
+            static get observedAttributes ()
+            {
+                return ['loop-back', 'auto-mode', 'auto-time', 'slide-step']
+            }
+
+            attributeChangedCallback (n, o, v)
+            {
+                if (o !== v && this.#connected) {
+                    console.log('update')
+                    this.#attr()
+                }
+            }
+
+            connectedCallback ()
+            {
+                this.#attr()
+                this.#ref()
+                this.#init()
+                this.#auto()
+                this.#connected = true
+            }
+
+            disconnectedCallback ()
+            {
+                this.#clearLeak()
+            }
+
+            //--------------------------------------------
+            // -------------------------  Utilitiez Helper
+
+            #attr ()
+            {
+                this.#loopBack = getAttr(this, 'loop-back')
+                this.#autoMode = getAttr(this, 'auto-mode')
+                this.#autoTime = getAttr(this, 'auto-time')
+                this.#slideStep = getAttr(this, 'slide-step')
+            }
+
+            #ref ()
+            {
+                this.#mask = this.querySelector('[ref-mask]')
+                this.#slides = this.querySelectorAll('[ref-slide]')
+                this.#nextBtn = this.querySelector('[ref-next]')
+                this.#prevBtn = this.querySelector('[ref-prev]')
+            }
+
+            #init ()
+            {
+                if (this.#nextBtn) observeEvent(this.#nextBtn, 'click', () => this.#next(), this.#cacheClick)
+                if (this.#prevBtn) observeEvent(this.#prevBtn, 'click', () => this.#prev(), this.#cacheClick)
+                observeResize(this, () => this.#reset(), 500, this.#cacheResize)
+                observeIntersect(this, (e) => (this.#inView = e.isIntersecting), this.#cacheInView)
+            }
+
+            #auto ()
+            {
+                if (this.#autoMode && this.#inView) {
+                    this.#next()
+                }
+                this.#autoTimeId = setTimeout(() => this.#auto(), this.#autoTime)
+            }
+
+            #next ()
+            {
+                const newSlide = this.#currentSlide + this.#slideStep
+                if (newSlide <= this.#slides.length - 1) {
+                    this.#currentSlide = newSlide
+                    this.#animate()
+                } else if (this.#loopBack) {
+                    this.#currentSlide = 0
+                    this.#animate()
+                }
+            }
+
+            #prev ()
+            {
+                const newSlide = this.#currentSlide - this.#slideStep
+                if (newSlide >= 0) {
+                    this.#currentSlide = newSlide
+                    this.#animate()
+                } else if (this.#loopBack) {
+                    this.#currentSlide = this.#slides.length - 1
+                    this.#animate()
+                }
+            }
+
+            #animate ()
+            {
+                const targetSlide = this.#slides[this.#currentSlide]
+                const containerRect = this.#mask.getBoundingClientRect()
+                const slideRect = targetSlide.getBoundingClientRect()
+                const offset = slideRect.left - containerRect.left
+
+                this.#gsapTween = gsap.to(this.#mask, {
+                    x: -offset,
+                    duration: 0.5,
+                    ease: 'none',
+                })
+            }
+
+            #reset ()
+            {
+                console.log('reset')
+
+                if (this.#gsapTween) {
+                    this.#gsapTween.progress(0).kill()
+                }
+
+                const targetSlide = this.#slides[this.#currentSlide]
+                const containerRect = this.#mask.getBoundingClientRect()
+                const slideRect = targetSlide.getBoundingClientRect()
+                const offset = slideRect.left - containerRect.left
+
+                gsap.to(this.#mask, {
+                    x: -offset,
+                    duration: 0,
+                })
+            }
+
+            #clearLeak ()
+            {
+                this.#cacheClick.forEach((cleanup) => cleanup())
+
+                this.#cacheResize.forEach((cleanup) => cleanup())
+
+                this.#cacheInView.forEach((cleanup) => cleanup())
+
+                clearTimeout(this.#autoTimeId)
+
+                this.#cacheClick = []
+                this.#cacheResize = []
+                this.#cacheInView = []
+
+                this.#inView = false
+                this.#connected = false
+                this.#gsapTween = 0
+                this.#currentSlide = 0
+            }
+        }
+
+        // Define the custom element.
+
+        return { Slider_01 }
     })()
 
     rf.lib.load(['gsap']).then(() =>
     {
-        customElements.define('redflow-modal-01', rf.component.Modal_01)
-        customElements.define('redflow-trigger-01', rf.component.Trigger_01)
-        customElements.define('redflow-icon-01', rf.component.Icon_01)
-        customElements.define('redflow-marquee-01', rf.component.Marquee_01)
+        //customElements.define('redflow-modal-01', rf.component.Modal_01)
+        //customElements.define('redflow-trigger-01', rf.component.Trigger_01)
+        //customElements.define('redflow-icon-01', rf.component.Icon_01)
+        //customElements.define('redflow-marquee-01', rf.component.Marquee_01)
+        customElements.define('reflow-slider-01', rf.component.Slider_01)
     })
 }
 
