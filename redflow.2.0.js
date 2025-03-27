@@ -101,27 +101,85 @@ function RedFlow ()
     {
         // Utility: Debounce Function
 
-        function getAttr (el, attrName)
+        function getAttr (el, attrName, expectedType)
         {
+            // Validate that el is a valid DOM element
+            if (!el || typeof el.getAttribute !== 'function') {
+                throw new Error('Invalid element provided')
+            }
+
+            // Validate that attrName is a non-empty string
+            if (typeof attrName !== 'string' || attrName.trim() === '') {
+                throw new Error('Attribute name must be a non-empty string')
+            }
+
             const attrValue = el.getAttribute(attrName)
             if (attrValue === null) return null
 
-            const trimmed = attrValue.trim()
+            let trimmed = attrValue.trim()
+            if (trimmed === '') return trimmed // Return empty string if no content
+
+            // If expectedType is provided, try to coerce the value accordingly
+            if (expectedType) {
+                switch (expectedType.toLowerCase()) {
+                    case 'json':
+                    case 'object':
+                        // If it looks like JSON, try parsing it
+                        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                            try {
+                                return JSON.parse(trimmed)
+                            } catch (err) {
+                                console.warn('Failed to parse JSON:', trimmed)
+                                return null
+                            }
+                        }
+                        // Fall back if not a valid JSON string
+                        return null
+                    case 'boolean':
+                        // Explicitly convert to boolean (false unless it's one of these truthy strings)
+                        return ['true', 'yes', 'on'].includes(trimmed.toLowerCase())
+                    case 'number':
+                        // Use regex to ensure it's a proper number before conversion
+                        if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+                            return Number(trimmed)
+                        }
+                        return NaN // or throw an error / return a default value
+                    case 'string':
+                        // Always return as a string
+                        return trimmed
+                    default:
+                        // If unknown type, you might want to throw an error or simply return the trimmed value
+                        console.warn(`Unsupported expected type: ${expectedType}`)
+                        return trimmed
+                }
+            }
+
+            // Fallback to auto-conversion logic if no expectedType is provided
+
             const lower = trimmed.toLowerCase()
 
             // Convert boolean-like strings to booleans
-            if (lower === 'true' || lower === 'yes' || lower === 'on') {
+            if (['true', 'yes', 'on'].includes(lower)) {
                 return true
-            } else if (lower === 'false' || lower === 'no' || lower === 'off') {
+            } else if (['false', 'no', 'off'].includes(lower)) {
                 return false
             }
 
-            // If it's a number string, convert it to a float
-            if (!isNaN(trimmed) && trimmed !== '') {
-                return parseFloat(trimmed)
+            // Use regex to check if the entire string is a valid number
+            if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+                return Number(trimmed)
             }
 
-            // Otherwise, return the original trimmed string
+            // If the string looks like JSON, try parsing it
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                try {
+                    return JSON.parse(trimmed)
+                } catch (err) {
+                    console.warn('Failed to parse JSON:', trimmed)
+                }
+            }
+
+            // Otherwise, return the trimmed string
             return trimmed
         }
 
@@ -815,10 +873,10 @@ function RedFlow ()
 
             #attr ()
             {
-                this.#loopBack = getAttr(this, 'loop-back')
-                this.#autoMode = getAttr(this, 'auto-mode')
-                this.#autoTime = getAttr(this, 'auto-time')
-                this.#slideStep = getAttr(this, 'slide-step')
+                this.#loopBack = getAttr(this, 'loop-back', 'boolean')
+                this.#autoMode = getAttr(this, 'auto-mode', 'boolean')
+                this.#autoTime = getAttr(this, 'auto-time', 'number')
+                this.#slideStep = getAttr(this, 'slide-step', 'number')
             }
 
             #ref ()
