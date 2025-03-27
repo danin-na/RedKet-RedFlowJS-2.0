@@ -217,7 +217,9 @@ function RedFlow ()
 
         function observeIntersect (element, callback, threshold = 0, cache)
         {
-            const observer = new IntersectionObserver((entries) => entries.forEach((entry) => callback(entry)), { threshold })
+            const observer = new IntersectionObserver((entries) => entries.forEach((entry) => callback(entry)), {
+                threshold,
+            })
             observer.observe(element)
             const cleanup = () => observer.disconnect()
             if (cache) {
@@ -229,154 +231,8 @@ function RedFlow ()
         // --------------------------------------------------------------------------------------------------------
         // --------------------------------------------------------------------------------------------------------
 
-        // -- ✅ Modal 01 -- ✨ Version 2.0
         /*
-        class Modal_01 extends HTMLElement {
-            //--------------------------------------------
-            // --------------------------- Component State
-
-            #st = {
-                sync: { group: null },
-                anim: { init: null, open: null, close: null }, // rf-data
-                ref: { trigger: null, backdrop: null, container: null, close: null }, // rf-data
-                life: { animation: null },
-                node: { isConnected: null, isOpen: false },
-            }
-
-            //--------------------------------------------
-            // ----------------------- lifecycle callbacks
-
-            constructor() {
-                super()
-            }
-
-            static get observedAttributes() {
-                return ['sync-group', 'anim-init', 'anim-open', 'anim-close']
-            }
-
-            attributeChangedCallback(n, o, v) {
-                // -- Empty
-            }
-
-            connectedCallback() {
-                this.#do.getAttr()
-                this.#do.modal.init()
-                this.#st.life.isConnected = true
-            }
-
-            disconnectedCallback() {
-                this.#do.clearLeak()
-                this.#st.life.isConnected = false
-            }
-
-            //--------------------------------------------
-            // -------------------------- Private Utilizes
-
-            #do = {
-                getAttr: () => {
-                    this.#st.sync.group = this.getAttribute('sync-group')
-                    this.#st.anim.init = JSON.parse(this.getAttribute('anim-init'))
-                    this.#st.anim.open = JSON.parse(this.getAttribute('anim-open'))
-                    this.#st.anim.close = JSON.parse(this.getAttribute('anim-close'))
-                },
-
-                modal: {
-                    init: () => {
-                        this.#st.ref.close = this.querySelector('[ref-close]')
-                        this.#st.ref.close.addEventListener('click', () => {
-                            this.#do.api.close()
-                        })
-
-                        this.#st.ref.trigger = this.querySelector('[ref-trigger]')
-                        this.#st.ref.trigger.addEventListener('click', () => {
-                            if (this.#st.node.isOpen) {
-                                this.#do.api.close()
-                            } else {
-                                const s = document.querySelectorAll(`[sync-group='${this.#st.sync.group}']`)
-                                s.forEach((element) => element.api('close'))
-                                this.#do.api.open()
-                            }
-                        })
-
-                        this.#st.ref.backdrop = this.querySelector('[ref-backdrop]')
-                        if (this.#st.ref.backdrop) gsap.set(this.#st.ref.backdrop, this.#st.anim.init)
-
-                        this.#st.ref.container = this.querySelector('[ref-container]')
-                        if (this.#st.ref.container) {
-                            this.#st.life.animation?.kill()
-                            this.#st.life.animation = gsap.timeline()
-                            this.#st.life.animation
-                                .set(this.#st.ref.container, { display: 'none' })
-                                .set(this.#st.ref.container, this.#st.anim.init)
-                        }
-                    },
-
-                    open: () => {
-                        this.#st.life.animation?.kill()
-                        this.#st.life.animation = gsap.timeline()
-                        this.#st.life.animation
-                            .set(this.#st.ref.container, { display: 'block' })
-                            .set(this.#st.ref.container, this.#st.anim.init)
-                            .to(this.#st.ref.container, this.#st.anim.open)
-
-                        this.#st.node.isOpen = true
-                    },
-
-                    close: () => {
-                        this.#st.life.animation?.kill()
-                        this.#st.life.animation = gsap.timeline()
-                        this.#st.life.animation
-                            .to(this.#st.ref.container, this.#st.anim.close)
-                            .set(this.#st.ref.container, { display: 'none' })
-
-                        this.#st.node.isOpen = false
-                    },
-                },
-
-                clearLeak: () => {
-                    gsap.killTweensOf(this.#st.ref.backdrop)
-                    gsap.killTweensOf(this.#st.ref.container)
-
-                    this.#st.life.animation?.kill()
-
-                    this.#st.anim.init = null
-                    this.#st.anim.open = null
-                    this.#st.anim.close = null
-
-                    this.#st.ref.backdrop = null
-                    this.#st.ref.container = null
-
-                    this.#st.life.animation = null
-                },
-
-                api: {
-                    open: () => {
-                        this.#do.modal.open()
-                    },
-
-                    close: () => {
-                        this.#do.modal.close()
-                    },
-                },
-            }
-
-            //--------------------------------------------
-            // -------------------------------- Public API
-
-            api(action) {
-                switch (action) {
-                    case 'open':
-                        this.#do.api.open()
-                        break
-                    case 'close':
-                        this.#do.api.close()
-                        break
-                    default:
-                        console.warn('Invalid API action:', action)
-                }
-            }
-        }
-
+   
     	
 
         class Trigger_01 extends HTMLElement {
@@ -792,6 +648,202 @@ function RedFlow ()
         }
         */
 
+        // -- ✅ Modal 01 -- ✨ Version 2.0
+
+        class Modal_01 extends HTMLElement
+        {
+            //--------------------------------------------
+            // --------------------------- Component State
+
+            // -- Data RF
+            #animInit
+            #animOpen
+            #animClose
+            #syncGroup
+            // -- Ref Html
+            #backdrop
+            #container
+            #closeBtn
+            #triggerBtn
+            // -- Cache Array
+            #cacheClick
+            // -- Anim State
+            #gsapTween
+            // -- Node State
+            #isOpen
+            #isConnected
+
+            //--------------------------------------------
+            // ----------------------- lifecycle callbacks
+
+            constructor()
+            {
+                super()
+                // -- Data RF
+                this.#nulling()
+                // -- Aria Accessbility
+                this.setAttribute('role', 'region')
+                this.setAttribute('aria-label', 'Modal Menu Navigation')
+            }
+
+            static get observedAttributes ()
+            {
+                return ['sync-group', 'anim-init', 'anim-open', 'anim-close']
+            }
+
+            attributeChangedCallback (n, o, v)
+            {
+                if (o !== v && this.#isConnected) {
+                    return
+                }
+            }
+
+            connectedCallback ()
+            {
+                this.#attr()
+                this.#ref()
+                this.#init()
+                this.#isConnected = true
+            }
+
+            disconnectedCallback ()
+            {
+                this.#clearLeak()
+            }
+
+            //--------------------------------------------
+            // -------------------------  Utilities Helper
+
+            #attr ()
+            {
+                this.#syncGroup = getAttr(this, 'sync-group', 'string')
+                this.#animInit = getAttr(this, 'anim-init', 'json')
+                this.#animOpen = getAttr(this, 'anim-open', 'json')
+                this.#animClose = getAttr(this, 'anim-close', 'json')
+            }
+
+            #ref ()
+            {
+                this.#closeBtn = this.querySelector('[ref-close]')
+                this.#triggerBtn = this.querySelector('[ref-trigger]')
+                this.#backdrop = this.querySelector('[ref-backdrop]')
+                this.#container = this.querySelector('[ref-container]')
+            }
+
+            #init ()
+            {
+                observeEvent(this.#triggerBtn, 'click', () => this.#open(), this.#cacheClick)
+                observeEvent(this.#closeBtn, 'click', () => this.#close(), this.#cacheClick)
+
+                //TODO fix the backdrop
+                //if (this.#st.ref.backdrop) gsap.set(this.#backdrop, this.#st.anim.init)
+
+                this.#gsapTween = gsap.timeline()
+                this.#gsapTween.set(this.#container, { display: 'none' }).set(this.#container, this.#animInit)
+            }
+
+            #open ()
+            {
+                if (this.#isOpen) {
+                    this.#close()
+                    return
+                }
+
+                const friends = document.querySelectorAll(`[sync-group='${this.#syncGroup}']`)
+                friends.forEach((element) =>
+                {
+                    element.api('close')
+                })
+
+                this.#animateOpen()
+            }
+
+            #close ()
+            {
+                this.#animateClose()
+            }
+
+            #animateOpen ()
+            {
+                this.#gsapTween?.kill()
+                this.#gsapTween = gsap.timeline()
+                this.#gsapTween
+                    .set(this.#container, { display: 'block' })
+                    .set(this.#container, this.#animInit)
+                    .to(this.#container, this.#animOpen)
+                this.#isOpen = true
+            }
+
+            #animateClose ()
+            {
+                this.#gsapTween?.kill()
+                this.#gsapTween = gsap.timeline()
+                this.#gsapTween.to(this.#container, this.#animClose).set(this.#container, { display: 'none' })
+                this.#isOpen = false
+            }
+
+            #clearLeak ()
+            {
+                this.#cacheClick.forEach((cleanup) => cleanup())
+
+                gsap.killTweensOf(this.#backdrop)
+                gsap.killTweensOf(this.#container)
+
+                this.#gsapTween?.kill()
+
+                this.#nulling()
+            }
+
+            #nulling ()
+            {
+                this.#animInit = null
+                this.#animOpen = null
+                this.#animClose = null
+                this.#syncGroup = null
+                // -- Ref Html
+                this.#backdrop = null
+                this.#container = null
+                this.#closeBtn = null
+                this.#triggerBtn = null
+                // -- Cache Array
+                this.#cacheClick = []
+                // -- Anim State
+                this.#gsapTween = 0
+                // -- Node State
+                this.#isOpen = null
+                this.#isConnected = null
+            }
+            //--------------------------------------------
+            // ------------------------------- Private API
+
+            #apiOpen ()
+            {
+                this.#open()
+            }
+
+            #apiClose ()
+            {
+                this.#close()
+            }
+
+            //--------------------------------------------
+            // -------------------------------- Public API
+
+            api (action)
+            {
+                switch (action) {
+                    case 'open':
+                        this.#apiOpen()
+                        break
+                    case 'close':
+                        this.#apiClose()
+                        break
+                    default:
+                        console.error('Invalid API action:', action)
+                }
+            }
+        }
+
         // -- ✅ Slider 01 -- ✨ Version 2.0
 
         class Slider_01 extends HTMLElement
@@ -815,7 +867,7 @@ function RedFlow ()
             #cacheInView
             // -- Node State
             #inView
-            #connected
+            #isConnected
             #gsapTween
             #autoTimeId
             #currentSlide
@@ -832,7 +884,7 @@ function RedFlow ()
                 this.#cacheInView = []
 
                 this.#inView = false
-                this.#connected = false
+                this.#isConnected = false
                 this.#gsapTween = 0
                 this.#autoTimeId = 0
                 this.#currentSlide = 0
@@ -848,8 +900,7 @@ function RedFlow ()
 
             attributeChangedCallback (n, o, v)
             {
-                if (o !== v && this.#connected) {
-                    console.log('update')
+                if (o !== v && this.#isConnected) {
                     this.#attr()
                 }
             }
@@ -860,7 +911,7 @@ function RedFlow ()
                 this.#ref()
                 this.#init()
                 this.#auto()
-                this.#connected = true
+                this.#isConnected = true
             }
 
             disconnectedCallback ()
@@ -869,7 +920,7 @@ function RedFlow ()
             }
 
             //--------------------------------------------
-            // -------------------------  Utilitiez Helper
+            // -------------------------  Utilities Helper
 
             #attr ()
             {
@@ -943,8 +994,6 @@ function RedFlow ()
 
             #reset ()
             {
-                console.log('reset')
-
                 if (this.#gsapTween) {
                     this.#gsapTween.progress(0).kill()
                 }
@@ -968,6 +1017,8 @@ function RedFlow ()
 
                 this.#cacheInView.forEach((cleanup) => cleanup())
 
+                //TODO make sure these is somewhere you do ' this.#gsapTween?.kill() '
+
                 clearTimeout(this.#autoTimeId)
 
                 this.#cacheClick = []
@@ -975,23 +1026,31 @@ function RedFlow ()
                 this.#cacheInView = []
 
                 this.#inView = false
-                this.#connected = false
+                this.#isConnected = false
                 this.#gsapTween = 0
                 this.#currentSlide = 0
             }
+
+            //--------------------------------------------
+            // ------------------------------- Private API
+
+            // -- Empty
+
+            //--------------------------------------------
+            // -------------------------------- Public API
+
+            // -- Empty
         }
 
-        // Define the custom element.
-
-        return { Slider_01 }
+        return { Slider_01, Modal_01 }
     })()
 
     rf.lib.load(['gsap']).then(() =>
     {
-        //customElements.define('redflow-modal-01', rf.component.Modal_01)
         //customElements.define('redflow-trigger-01', rf.component.Trigger_01)
         //customElements.define('redflow-icon-01', rf.component.Icon_01)
         //customElements.define('redflow-marquee-01', rf.component.Marquee_01)
+        customElements.define('redflow-modal-01', rf.component.Modal_01)
         customElements.define('reflow-slider-01', rf.component.Slider_01)
     })
 }
