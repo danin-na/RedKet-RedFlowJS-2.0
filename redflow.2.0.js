@@ -821,20 +821,25 @@ function RedFlow ()
 
             #nulling ()
             {
+                // -- Data Attr
                 this.#animInit = null
                 this.#animOpen = null
                 this.#animClose = null
                 this.#syncGroup = ''
+
                 // -- Ref Html
                 this.#backdrop = null
                 this.#container = null
                 this.#closeBtn = null
                 this.#triggerBtn = null
+
                 // -- Cache Array
                 this.#cacheClick = []
+
                 // -- Anim State
                 this.#gsapBackdrop = 0
                 this.#gsapContainer = 0
+
                 // -- Node State
                 this.#isOpen = null
                 this.#isConnected = null
@@ -1001,13 +1006,12 @@ function RedFlow ()
 
             #animate ()
             {
-                this.#gsapTween?.kill()
-
                 const targetSlide = this.#slides[this.#currentSlide]
                 const containerRect = this.#mask.getBoundingClientRect()
                 const slideRect = targetSlide.getBoundingClientRect()
                 const offset = slideRect.left - containerRect.left
 
+                this.#gsapTween?.kill()
                 this.#gsapTween = gsap.timeline()
                 this.#gsapTween.to(this.#mask, {
                     x: -offset,
@@ -1018,13 +1022,12 @@ function RedFlow ()
 
             #reset ()
             {
-                this.#gsapTween?.kill()
-
                 const targetSlide = this.#slides[this.#currentSlide]
                 const containerRect = this.#mask.getBoundingClientRect()
                 const slideRect = targetSlide.getBoundingClientRect()
                 const offset = slideRect.left - containerRect.left
 
+                this.#gsapTween?.kill()
                 this.#gsapTween = gsap.timeline()
                 this.#gsapTween.to(this.#mask, {
                     x: -offset,
