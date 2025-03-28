@@ -228,12 +228,35 @@ function RedFlow ()
             return cleanup
         }
 
+        function observeIntersect2 (element, onIntersect, onNotIntersect, cache, threshold = 0)
+        {
+            const observer = new IntersectionObserver(
+                (entries) =>
+                {
+                    entries.forEach((entry) =>
+                    {
+                        if (entry.isIntersecting) {
+                            onIntersect(entry)
+                        } else {
+                            onNotIntersect(entry)
+                        }
+                    })
+                },
+                { threshold }
+            )
+
+            observer.observe(element)
+            const cleanup = () => observer.disconnect()
+            if (cache) {
+                cache.push(cleanup)
+            }
+            return cleanup
+        }
+
         // --------------------------------------------------------------------------------------------------------
         // --------------------------------------------------------------------------------------------------------
 
         /*
-   
-    	
 
         class Trigger_01 extends HTMLElement {
             //--------------------------------------------
@@ -402,253 +425,179 @@ function RedFlow ()
             // -- Empty
         }
 
-        class Marquee_01 extends HTMLElement {
-            //--------------------------------------------
-            // ------------------------------------- STATE
-
-            //---------------------- state ( private )
-
-            #st = {
-                life: { tween: null, tweenOld: null, isConnected: null },
-                observe: { resize: null, intersecting: null, isIntersecting: null },
-            }
-
-            //---------------------- state ( attribute )
-
-            #rf = { anim: { ease: null, duration: null, direction: null }, ref: { slider: null } } // RedFlow
-
-            //--------------------------------------------
-            // ----------------------------------- TRIGGER
-
-            //---------------------- trigger ( callback )
-
-            constructor() {
-                super()
-            }
-
-            static get observedAttributes() {
-                return ['rf-anim-ease', 'rf-anim-direction', 'rf-anim-duration']
-            }
-
-            attributeChangedCallback(n, o, v) {
-                if (o !== v && this.#st.life.isConnected) {
-                    // -- Animation Attribute
-
-                    this.#fn.animAttr()
-
-                    // -- Animation Render
-
-                    this.#fn.animRender()
-
-                    // -- If not intersected, Pause
-
-                    if (!this.#st.observe.isIntersecting) this.#st.life.tween.pause()
-                }
-            }
-
-            connectedCallback() {
-                // -- Animation Attribute
-
-                this.#fn.animAttr()
-
-                // -- Get rf-ref / If no tween DOM, Make Clone
-                this.#rf.ref.slider = this.querySelectorAll('[rf-ref-slider]')
-
-                if (!this.#rf.ref.slider || this.#rf.ref.slider.length === 0 || this.#rf.ref.slider.length > 2) {
-                    throw new Error('child ref "rf-ref-slider" does not exist or there are too many')
-                }
-
-                if (this.#rf.ref.slider.length == 1) this.appendChild(this.#rf.ref.slider[0].cloneNode(true))
-
-                // -- Animation Render
-
-                this.#fn.animRender()
-
-                // -- Observer : Resize - Debounce
-                this.#st.observe.resize = observe_Resize(this, () => {
-                    this.#fn.animRender()
-                    if (!this.#st.observe.isIntersecting) {
-                        this.#st.life.tween.pause()
-                    }
-                })
-
-                // -- Observer - Intersect Implement
-
-                this.#st.observe.intersecting = observe_Intersect(this, (entry) => {
-                    this.#st.observe.isIntersecting = entry.isIntersecting
-                    if (entry.isIntersecting && this.#st.life.tween && !this.#st.life.tween.isActive()) {
-                        this.#st.life.tween.resume()
-                    } else if (this.#st.life.tween && this.#st.life.tween.isActive()) {
-                        this.#st.life.tween.pause()
-                    }
-                })
-
-                // -- Element is Connected, now ChangedCallback works
-
-                this.#st.life.isConnected = true
-            }
-
-            disconnectedCallback() {
-                this.#fn.clearLeak()
-            }
-
-            //---------------------- trigger ( utility )
-
-            #fn = {
-                animAttr: () => {
-                    // -- Get rf-anim
-                    this.#rf.anim.ease = this.getAttribute('rf-anim-ease')
-                    this.#rf.anim.duration = parseFloat(this.getAttribute('rf-anim-duration'))
-                    this.#rf.anim.direction = this.getAttribute('rf-anim-direction')
-                },
-
-                animRender: () => {
-                    // -- kill animation / but save animation position
-
-                    if (this.#st.life.tween) {
-                        this.#st.life.tweenOld = this.#st.life.tween.progress()
-                        this.#st.life.tween.progress(0).kill()
-                        this.#st.life.tween = null
-                    }
-
-                    this.#rf.ref.slider = this.querySelectorAll('[rf-ref-slider]')
-                    const w = this.#rf.ref.slider[0].getBoundingClientRect().width
-
-                    // -- create new animation
-
-                    this.#st.life.tween = gsap.fromTo(
-                        this.#rf.ref.slider,
-                        { x: this.#rf.anim.direction === 'left' ? 0 : -w },
-                        {
-                            x: this.#rf.anim.direction === 'left' ? -w : 0,
-                            duration: this.#rf.anim.duration,
-                            ease: this.#rf.anim.ease,
-                            repeat: -1,
-                        }
-                    )
-
-                    // -- bring back animation position
-
-                    this.#st.life.tween.progress(this.#st.life.tweenOld)
-                },
-
-                clearLeak: () => {
-                    // -- Clear Memory Leak
-                    if (this.#st.life.tween) this.#st.life.tween.progress(0).kill()
-
-                    // Disconnect ResizeObserver
-                    if (this.#st.observe.resize) {
-                        this.#st.observe.resize.disconnect()
-                        this.#st.observe.resize = null
-                    }
-
-                    // Disconnect IntersectionObserver
-                    if (this.#st.observe.intersecting) {
-                        this.#st.observe.intersecting.disconnect()
-                        this.#st.observe.intersecting = null
-                    }
-
-                    // -- Null-ing Attribute
-                    this.#st.life.tweenOld = null
-                    this.#st.life.tween = null
-                    this.#st.life.isConnected = null
-
-                    this.#st.observe.resize = null
-                    this.#st.observe.intersecting = null // optional
-                    this.#st.observe.isIntersecting = null // optional
-
-                    this.#rf.ref.slider = null
-                    this.#rf.anim.ease = null // optional
-                    this.#rf.anim.duration = null // optional
-                    this.#rf.anim.direction = null // optional
-                },
-            }
-
-            //--------------------------------------------
-            // --------------------------------------- API
-
-            //---------------------- api (private)
-
-            #api = {
-                pause: () => {
-                    if (this.#st.life.tween && this.#st.life.tween.isActive()) {
-                        this.#st.life.tween.pause()
-                    }
-                },
-
-                resume: () => {
-                    if (this.#st.life.tween && !this.#st.life.tween.isActive()) {
-                        this.#st.life.tween.resume()
-                    }
-                },
-
-                remove: () => {
-                    this.remove()
-                },
-
-                setSpeed: (speedMultiplier) => {
-                    if (this.#st.life.tween) {
-                        this.#st.life.tween.timeScale(speedMultiplier)
-                    }
-                },
-
-                setDirection: (direction) => {
-                    this.setAttribute('rf-anim-direction', direction)
-                },
-
-                setEase: (ease) => {
-                    this.setAttribute('rf-anim-ease', ease)
-                },
-
-                restart: () => {
-                    if (this.#st.life.tween) {
-                        this.#st.life.tween.restart()
-                    }
-                },
-
-                stop: () => {
-                    if (this.#st.life.tween) {
-                        this.#st.life.tween.progress(0).pause()
-                    }
-                },
-            }
-
-            //---------------------- api (public)
-
-            api(action, params) {
-                switch (action) {
-                    case 'remove':
-                        this.#api.remove()
-                        break
-                    case 'pause':
-                        this.#api.pause()
-                        break
-                    case 'resume':
-                        this.#api.resume()
-                        break
-                    case 'restart':
-                        this.#api.restart()
-                        break
-                    case 'setSpeed':
-                        this.#api.setSpeed(params.speedMultiplier)
-                        break
-                    case 'setDirection':
-                        this.#api.setDirection(params.direction)
-                        break
-                    case 'setEase':
-                        this.#api.setEase(params.ease)
-                        break
-                    case 'stop':
-                        this.#api.stop()
-                        break
-                    default:
-                        console.warn('Invalid API action:', action)
-                }
-            }
-        }
+ 
         */
 
         // -- ✅ Modal 01 -- ✨ Version 2.0
+
+        class Marquee_01 extends HTMLElement
+        {
+            #anim_el = null
+            #anim_opt = {}
+            #anim_frX = 0
+            #anim_toX = 0
+            #anim_tween = null
+            #anim_tweenProg = 0
+            #anim_cahce_intersect = []
+            #isConnected = false
+
+            // --------------------------------------------
+            // -- Lifecycle - Callbacks -------------------
+            // --------------------------------------------
+
+            constructor()
+            {
+                super()
+            }
+
+            static get observedAttributes ()
+            {
+                return ['anim-play']
+            }
+
+            attributeChangedCallback (n, o, v)
+            {
+                if (o !== v && this.#isConnected) {
+                    this.#anim_reset()
+                }
+            }
+
+            connectedCallback ()
+            {
+                this.#anim_init()
+                this.#isConnected = true
+            }
+
+            disconnectedCallback ()
+            {
+                this.#anim_clear()
+                this.#isConnected = false
+            }
+
+            // --------------------------------------------
+            // -- Public - API ----------------------------
+            // --------------------------------------------
+
+            // -- Empty
+
+            // --------------------------------------------
+            // -- Private - API ---------------------------
+            // --------------------------------------------
+
+            #anim_init ()
+            {
+                this.#_anim_set_el()
+                this.#_anim_set_event()
+                this.#_anim_get_el()
+                this.#_anim_get_opt()
+                this.#_anim_get_frtox()
+                this.#_anim_run()
+            }
+
+            #anim_reset ()
+            {
+                this.#_anim_get_opt()
+                this.#_anim_get_frtox()
+                this.#_anim_reset()
+                this.#_anim_run()
+            }
+
+            #anim_clear ()
+            {
+                this.#anim_tween?.progress(0).kill()
+                this.#anim_cahce_intersect.forEach((cleanup) => cleanup())
+
+                this.#anim_el = null
+                this.#anim_opt = {}
+                this.#anim_frX = 0
+                this.#anim_toX = 0
+                this.#anim_tween = null
+                this.#anim_tweenProg = 0
+                this.#anim_cahce_intersect = []
+            }
+
+            // --------------------------------------------
+            // -- Private - Helper ------------------------
+            // --------------------------------------------
+
+            #_anim_set_el ()
+            {
+                const sliders = Array.from(this.querySelectorAll('[ref-slider]'))
+
+                if (!sliders.length) throw new Error('No child ref "ref-slider"') //! Replace Error Check
+
+                for (let i = 1; i < sliders.length; i++) sliders[i].remove()
+
+                this.appendChild(sliders[0].cloneNode(true))
+            }
+
+            #_anim_set_event ()
+            {
+                // Pass the cleanup cache so the observer's disconnect function is stored
+                observeIntersect2(
+                    this,
+                    () => this.#_anim_resume(),
+                    () => this.#_anim_pause(),
+                    this.#anim_cahce_intersect,
+                    0
+                )
+            }
+
+            #_anim_get_el ()
+            {
+                const anim_el = this.querySelectorAll('[ref-slider]')
+                this.#anim_el = anim_el
+            }
+
+            #_anim_get_opt ()
+            {
+                const _anim_deft = { duration: 10, ease: 'none', repeat: -1 }
+                const _anim_user = getAttr(this, 'anim-play', 'json') || {}
+                const _anim_opt = { ..._anim_deft, ..._anim_user }
+
+                this.#anim_opt = _anim_opt
+            }
+
+            #_anim_get_frtox ()
+            {
+                const _direction = this.#anim_opt.direction || 'left'
+                const _width = this.#anim_el[0].getBoundingClientRect().width
+                const _frX = _direction === 'left' ? 0 : -_width
+                const _toX = _direction === 'left' ? -_width : 0
+
+                delete this.#anim_opt.direction
+
+                this.#anim_frX = _frX
+                this.#anim_toX = _toX
+            }
+
+            #_anim_run ()
+            {
+                this.#anim_tweenProg = this.#anim_tweenProg || 0
+                this.#anim_tween = gsap.fromTo(this.#anim_el, { x: this.#anim_frX }, { x: this.#anim_toX, ...this.#anim_opt })
+                this.#anim_tween.progress(this.#anim_tweenProg)
+                this.#anim_tweenProg = 0
+            }
+
+            #_anim_reset ()
+            {
+                if (this.#anim_tween) {
+                    this.#anim_tweenProg = this.#anim_tween.progress()
+                    this.#anim_tween.progress(0).kill()
+                    this.#anim_tween = null
+                }
+            }
+
+            #_anim_pause ()
+            {
+                this.#anim_tween.pause()
+            }
+
+            #_anim_resume ()
+            {
+                this.#anim_tween.resume()
+            }
+        }
 
         class Modal_01 extends HTMLElement
         {
@@ -875,8 +824,6 @@ function RedFlow ()
             }
         }
 
-        // -- ✅ Slider 01 -- ✨ Version 2.0
-
         class Slider_01 extends HTMLElement
         {
             //--------------------------------------------
@@ -1090,16 +1037,16 @@ function RedFlow ()
             // -- Empty
         }
 
-        return { Slider_01, Modal_01 }
+        return { Slider_01, Modal_01, Marquee_01 }
     })()
 
     rf.lib.load(['gsap']).then(() =>
     {
         //customElements.define('redflow-trigger-01', rf.component.Trigger_01)
         //customElements.define('redflow-icon-01', rf.component.Icon_01)
-        //customElements.define('redflow-marquee-01', rf.component.Marquee_01)
+        customElements.define('redflow-marquee-01', rf.component.Marquee_01)
         customElements.define('redflow-modal-01', rf.component.Modal_01)
-        customElements.define('reflow-slider-01', rf.component.Slider_01)
+        customElements.define('redflow-slider-01', rf.component.Slider_01)
     })
 }
 
