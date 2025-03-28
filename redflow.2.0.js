@@ -655,20 +655,25 @@ function RedFlow ()
             //--------------------------------------------
             // --------------------------- Component State
 
-            // -- Data RF
+            // -- Data Attr
             #animInit
             #animOpen
             #animClose
             #syncGroup
+
             // -- Ref Html
             #backdrop
             #container
             #closeBtn
             #triggerBtn
+
             // -- Cache Array
             #cacheClick
+
             // -- Anim State
-            #gsapTween
+            #gsapContainer
+            #gsapBackdrop
+
             // -- Node State
             #isOpen
             #isConnected
@@ -679,10 +684,8 @@ function RedFlow ()
             constructor()
             {
                 super()
-                // -- Data RF
                 this.#nulling()
-                // -- Aria Accessbility
-                this.setAttribute('role', 'region')
+                this.setAttribute('role', 'dialog')
                 this.setAttribute('aria-label', 'Modal Menu Navigation')
             }
 
@@ -694,7 +697,7 @@ function RedFlow ()
             attributeChangedCallback (n, o, v)
             {
                 if (o !== v && this.#isConnected) {
-                    return
+                    this.#attr()
                 }
             }
 
@@ -735,11 +738,13 @@ function RedFlow ()
                 observeEvent(this.#triggerBtn, 'click', () => this.#open(), this.#cacheClick)
                 observeEvent(this.#closeBtn, 'click', () => this.#close(), this.#cacheClick)
 
-                //TODO fix the backdrop
-                //if (this.#st.ref.backdrop) gsap.set(this.#backdrop, this.#st.anim.init)
+                if (this.#backdrop) {
+                    this.#gsapBackdrop = gsap.timeline()
+                    this.#gsapBackdrop = gsap.set(this.#backdrop, { display: 'none', autoAlpha: 0 })
+                }
 
-                this.#gsapTween = gsap.timeline()
-                this.#gsapTween.set(this.#container, { display: 'none' }).set(this.#container, this.#animInit)
+                this.#gsapContainer = gsap.timeline()
+                this.#gsapContainer.set(this.#container, { display: 'none' }).set(this.#container, this.#animInit)
             }
 
             #open ()
@@ -765,9 +770,20 @@ function RedFlow ()
 
             #animateOpen ()
             {
-                this.#gsapTween?.kill()
-                this.#gsapTween = gsap.timeline()
-                this.#gsapTween
+                if (this.#backdrop) {
+                    this.#gsapBackdrop?.kill()
+                    this.#gsapBackdrop = gsap.timeline()
+                    this.#gsapBackdrop.set(this.#backdrop, {
+                        display: 'block',
+                        autoAlpha: 1,
+                        duration: 0.3,
+                        ease: 'back.out(1.7)',
+                    })
+                }
+
+                this.#gsapContainer.kill()
+                this.#gsapContainer = gsap.timeline()
+                this.#gsapContainer
                     .set(this.#container, { display: 'block' })
                     .set(this.#container, this.#animInit)
                     .to(this.#container, this.#animOpen)
@@ -776,9 +792,20 @@ function RedFlow ()
 
             #animateClose ()
             {
-                this.#gsapTween?.kill()
-                this.#gsapTween = gsap.timeline()
-                this.#gsapTween.to(this.#container, this.#animClose).set(this.#container, { display: 'none' })
+                if (this.#backdrop) {
+                    this.#gsapBackdrop?.kill()
+                    this.#gsapBackdrop = gsap.timeline()
+                    this.#gsapBackdrop.set(this.#backdrop, {
+                        display: 'block',
+                        autoAlpha: 0,
+                        duration: 0.3,
+                        ease: 'back.in(1.7)',
+                    })
+                }
+
+                this.#gsapContainer.kill()
+                this.#gsapContainer = gsap.timeline()
+                this.#gsapContainer.to(this.#container, this.#animClose).set(this.#container, { display: 'none' })
                 this.#isOpen = false
             }
 
@@ -786,10 +813,8 @@ function RedFlow ()
             {
                 this.#cacheClick.forEach((cleanup) => cleanup())
 
-                gsap.killTweensOf(this.#backdrop)
-                gsap.killTweensOf(this.#container)
-
-                this.#gsapTween?.kill()
+                this.#gsapBackdrop?.progress(0).kill()
+                this.#gsapContainer.progress(0).kill()
 
                 this.#nulling()
             }
@@ -799,7 +824,7 @@ function RedFlow ()
                 this.#animInit = null
                 this.#animOpen = null
                 this.#animClose = null
-                this.#syncGroup = null
+                this.#syncGroup = ''
                 // -- Ref Html
                 this.#backdrop = null
                 this.#container = null
@@ -808,7 +833,8 @@ function RedFlow ()
                 // -- Cache Array
                 this.#cacheClick = []
                 // -- Anim State
-                this.#gsapTween = 0
+                this.#gsapBackdrop = 0
+                this.#gsapContainer = 0
                 // -- Node State
                 this.#isOpen = null
                 this.#isConnected = null
@@ -851,26 +877,31 @@ function RedFlow ()
             //--------------------------------------------
             // --------------------------- Component State
 
-            // -- Data RF
+            // -- Data Attr
             #loopBack
             #autoMode
             #autoTime
             #slideStep
+
             // -- Ref Html
             #mask
             #slides
             #nextBtn
             #prevBtn
+
             // -- Cache Array
             #cacheClick
             #cacheResize
             #cacheInView
-            // -- Node State
-            #inView
-            #isConnected
+
+            // -- Anim State
             #gsapTween
             #autoTimeId
             #currentSlide
+
+            // -- Node State
+            #inView
+            #isConnected
 
             //--------------------------------------------
             // ----------------------- lifecycle callbacks
@@ -878,17 +909,7 @@ function RedFlow ()
             constructor()
             {
                 super()
-
-                this.#cacheClick = []
-                this.#cacheResize = []
-                this.#cacheInView = []
-
-                this.#inView = false
-                this.#isConnected = false
-                this.#gsapTween = 0
-                this.#autoTimeId = 0
-                this.#currentSlide = 0
-
+                this.#nulling()
                 this.setAttribute('role', 'region')
                 this.setAttribute('aria-label', 'Image Slider')
             }
@@ -980,12 +1001,15 @@ function RedFlow ()
 
             #animate ()
             {
+                this.#gsapTween?.kill()
+
                 const targetSlide = this.#slides[this.#currentSlide]
                 const containerRect = this.#mask.getBoundingClientRect()
                 const slideRect = targetSlide.getBoundingClientRect()
                 const offset = slideRect.left - containerRect.left
 
-                this.#gsapTween = gsap.to(this.#mask, {
+                this.#gsapTween = gsap.timeline()
+                this.#gsapTween.to(this.#mask, {
                     x: -offset,
                     duration: 0.5,
                     ease: 'none',
@@ -994,16 +1018,15 @@ function RedFlow ()
 
             #reset ()
             {
-                if (this.#gsapTween) {
-                    this.#gsapTween.progress(0).kill()
-                }
+                this.#gsapTween?.kill()
 
                 const targetSlide = this.#slides[this.#currentSlide]
                 const containerRect = this.#mask.getBoundingClientRect()
                 const slideRect = targetSlide.getBoundingClientRect()
                 const offset = slideRect.left - containerRect.left
 
-                gsap.to(this.#mask, {
+                this.#gsapTween = gsap.timeline()
+                this.#gsapTween.to(this.#mask, {
                     x: -offset,
                     duration: 0,
                 })
@@ -1017,18 +1040,40 @@ function RedFlow ()
 
                 this.#cacheInView.forEach((cleanup) => cleanup())
 
-                //TODO make sure these is somewhere you do ' this.#gsapTween?.kill() '
+                this.#gsapTween?.progress(0).kill()
 
                 clearTimeout(this.#autoTimeId)
 
+                this.#nulling()
+            }
+
+            #nulling ()
+            {
+                // -- Data Attr
+                this.#loopBack = false
+                this.#autoMode = false
+                this.#autoTime = 0
+                this.#slideStep = 0
+
+                // -- Ref Html
+                this.#mask = null
+                this.#slides = null
+                this.#nextBtn = null
+                this.#prevBtn = null
+
+                // -- Cache Array
                 this.#cacheClick = []
                 this.#cacheResize = []
                 this.#cacheInView = []
 
+                // -- Anim State
+                this.#gsapTween = null
+                this.#autoTimeId = null
+                this.#currentSlide = 0
+
+                // -- Node State
                 this.#inView = false
                 this.#isConnected = false
-                this.#gsapTween = 0
-                this.#currentSlide = 0
             }
 
             //--------------------------------------------
