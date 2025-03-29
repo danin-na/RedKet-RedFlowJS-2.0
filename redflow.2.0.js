@@ -101,332 +101,146 @@ function RedFlow ()
     {
         // Utility: Debounce Function
 
-        function getAttr (el, attrName, expectedType)
-        {
-            // Validate that el is a valid DOM element
-            if (!el || typeof el.getAttribute !== 'function') {
-                throw new Error('Invalid element provided')
-            }
-
-            // Validate that attrName is a non-empty string
-            if (typeof attrName !== 'string' || attrName.trim() === '') {
-                throw new Error('Attribute name must be a non-empty string')
-            }
-
-            const attrValue = el.getAttribute(attrName)
-            if (attrValue === null) return null
-
-            let trimmed = attrValue.trim()
-            if (trimmed === '') return trimmed // Return empty string if no content
-
-            // If expectedType is provided, try to coerce the value accordingly
-            if (expectedType) {
-                switch (expectedType.toLowerCase()) {
-                    case 'json':
-                    case 'object':
-                        // If it looks like JSON, try parsing it
-                        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-                            try {
-                                return JSON.parse(trimmed)
-                            } catch (err) {
-                                console.warn('Failed to parse JSON:', trimmed)
-                                return null
-                            }
-                        }
-                        // Fall back if not a valid JSON string
-                        return null
-                    case 'boolean':
-                        // Explicitly convert to boolean (false unless it's one of these truthy strings)
-                        return ['true', 'yes', 'on'].includes(trimmed.toLowerCase())
-                    case 'number':
-                        // Use regex to ensure it's a proper number before conversion
-                        if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
-                            return Number(trimmed)
-                        }
-                        return NaN // or throw an error / return a default value
-                    case 'string':
-                        // Always return as a string
-                        return trimmed
-                    default:
-                        // If unknown type, you might want to throw an error or simply return the trimmed value
-                        console.warn(`Unsupported expected type: ${expectedType}`)
-                        return trimmed
-                }
-            }
-
-            // Fallback to auto-conversion logic if no expectedType is provided
-
-            const lower = trimmed.toLowerCase()
-
-            // Convert boolean-like strings to booleans
-            if (['true', 'yes', 'on'].includes(lower)) {
-                return true
-            } else if (['false', 'no', 'off'].includes(lower)) {
-                return false
-            }
-
-            // Use regex to check if the entire string is a valid number
-            if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
-                return Number(trimmed)
-            }
-
-            // If the string looks like JSON, try parsing it
-            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-                try {
-                    return JSON.parse(trimmed)
-                } catch (err) {
-                    console.warn('Failed to parse JSON:', trimmed)
-                }
-            }
-
-            // Otherwise, return the trimmed string
-            return trimmed
-        }
-
-        function debounce (fn, delay)
-        {
-            let timer
-            return (...args) =>
+        const fn = {
+            getAttr (el, attrName, expectedType)
             {
-                clearTimeout(timer)
-                timer = setTimeout(() => fn.apply(this, args), delay)
-            }
-        }
+                // Validate that el is a valid DOM element
+                if (!el || typeof el.getAttribute !== 'function') {
+                    throw new Error('Invalid element provided')
+                }
 
-        function observeEvent (element, eventType, callback, cache)
-        {
-            element.addEventListener(eventType, callback)
-            const cleanup = () => element.removeEventListener(eventType, callback)
-            if (cache) {
-                cache.push(cleanup)
-            }
-            return cleanup
-        }
+                // Validate that attrName is a non-empty string
+                if (typeof attrName !== 'string' || attrName.trim() === '') {
+                    throw new Error('Attribute name must be a non-empty string')
+                }
 
-        function observeResize (element, callback, delay = 400, cache)
-        {
-            const debouncedCallback = debounce(callback, delay)
-            const observer = new ResizeObserver(debouncedCallback)
-            observer.observe(element)
-            const cleanup = () => observer.disconnect()
-            if (cache) {
-                cache.push(cleanup)
-            }
-            return cleanup
-        }
+                const attrValue = el.getAttribute(attrName)
+                if (attrValue === null) return null
 
-        function observeIntersect (element, callback, threshold = 0, cache)
-        {
-            const observer = new IntersectionObserver((entries) => entries.forEach((entry) => callback(entry)), {
-                threshold,
-            })
-            observer.observe(element)
-            const cleanup = () => observer.disconnect()
-            if (cache) {
-                cache.push(cleanup)
-            }
-            return cleanup
-        }
+                let trimmed = attrValue.trim()
+                if (trimmed === '') return trimmed // Return empty string if no content
 
-        function observeIntersect2 (element, onIntersect, onNotIntersect, cache, threshold = 0)
-        {
-            const observer = new IntersectionObserver(
-                (entries) =>
+                // If expectedType is provided, try to coerce the value accordingly
+                if (expectedType) {
+                    switch (expectedType.toLowerCase()) {
+                        case 'json':
+                        case 'object':
+                            // If it looks like JSON, try parsing it
+                            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                                try {
+                                    return JSON.parse(trimmed)
+                                } catch (err) {
+                                    console.warn('Failed to parse JSON:', trimmed)
+                                    return null
+                                }
+                            }
+                            // Fall back if not a valid JSON string
+                            return null
+                        case 'boolean':
+                            // Explicitly convert to boolean (false unless it's one of these truthy strings)
+                            return ['true', 'yes', 'on'].includes(trimmed.toLowerCase())
+                        case 'number':
+                            // Use regex to ensure it's a proper number before conversion
+                            if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+                                return Number(trimmed)
+                            }
+                            return NaN // or throw an error / return a default value
+                        case 'string':
+                            // Always return as a string
+                            return trimmed
+                        default:
+                            // If unknown type, you might want to throw an error or simply return the trimmed value
+                            console.warn(`Unsupported expected type: ${expectedType}`)
+                            return trimmed
+                    }
+                }
+
+                // Fallback to auto-conversion logic if no expectedType is provided
+
+                const lower = trimmed.toLowerCase()
+
+                // Convert boolean-like strings to booleans
+                if (['true', 'yes', 'on'].includes(lower)) {
+                    return true
+                } else if (['false', 'no', 'off'].includes(lower)) {
+                    return false
+                }
+
+                // Use regex to check if the entire string is a valid number
+                if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+                    return Number(trimmed)
+                }
+
+                // If the string looks like JSON, try parsing it
+                if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                    try {
+                        return JSON.parse(trimmed)
+                    } catch (err) {
+                        console.warn('Failed to parse JSON:', trimmed)
+                    }
+                }
+
+                // Otherwise, return the trimmed string
+                return trimmed
+            },
+
+            debounce (fn, delay)
+            {
+                let timer
+                return (...args) =>
                 {
-                    entries.forEach((entry) =>
+                    clearTimeout(timer)
+                    timer = setTimeout(() => fn.apply(this, args), delay)
+                }
+            },
+
+            observeEvent (element, eventType, callback, cache)
+            {
+                element.addEventListener(eventType, callback)
+                const cleanup = () => element.removeEventListener(eventType, callback)
+                if (cache) {
+                    cache.push(cleanup)
+                }
+                return cleanup
+            },
+
+            observeResize (element, callback, delay = 400, cache)
+            {
+                const debouncedCallback = debounce(callback, delay)
+                const observer = new ResizeObserver(debouncedCallback)
+                observer.observe(element)
+                const cleanup = () => observer.disconnect()
+                if (cache) {
+                    cache.push(cleanup)
+                }
+                return cleanup
+            },
+
+            observeIntersect (element, onIntersect, onNotIntersect, cache, threshold = 0)
+            {
+                const observer = new IntersectionObserver(
+                    (entries) =>
                     {
-                        if (entry.isIntersecting) {
-                            onIntersect(entry)
-                        } else {
-                            onNotIntersect(entry)
-                        }
-                    })
-                },
-                { threshold }
-            )
-
-            observer.observe(element)
-            const cleanup = () => observer.disconnect()
-            if (cache) {
-                cache.push(cleanup)
-            }
-            return cleanup
-        }
-
-        // --------------------------------------------------------------------------------------------------------
-        // --------------------------------------------------------------------------------------------------------
-
-        /*
-
-        class Trigger_01 extends HTMLElement {
-            //--------------------------------------------
-            // --------------------------- Component State
-
-            #st = {
-                trigger: { event: [] }, // rf-data
-                target: { sync: [], api: [] }, // rf-data
-                life: { events: [] },
-                node: { isConnected: null },
-            }
-
-            //--------------------------------------------
-            // ----------------------- lifecycle callbacks
-
-            constructor() {
-                super()
-            }
-
-            static get observedAttributes() {
-                return ['trigger-event', 'target-sync', 'target-api']
-            }
-
-            attributeChangedCallback() {
-                // -- Empty
-            }
-
-            connectedCallback() {
-                this.#do.getAttr()
-                this.#do.trigger.init()
-                this.#st.life.isConnected = true
-            }
-
-            disconnectedCallback() {
-                this.#do.clearLeak()
-                this.#st.life.isConnected = false
-            }
-
-            // -------------------- Helper
-
-            #do = {
-                getAttr: () => {
-                    this.#st.trigger.event = this.getAttribute('trigger-event')
-                        .split(',')
-                        .map((v) => v.trim())
-                    this.#st.target.sync = this.getAttribute('target-sync')
-                        .split(',')
-                        .map((v) => v.trim())
-                    this.#st.target.api = this.getAttribute('target-api')
-                        .split(',')
-                        .map((v) => v.trim())
-                },
-
-                trigger: {
-                    init: () => {
-                        this.#st.trigger.event.forEach((event, i) => {
-                            const targetElement = document.querySelector(`[sync-id="${this.#st.target.sync[i]}"]`)
-                            const targetApi = () => targetElement?.api(this.#st.target.api[i])
-
-                            this.addEventListener(event, targetApi)
-                            this.#st.life.events.push({ event, targetApi })
+                        entries.forEach((entry) =>
+                        {
+                            if (entry.isIntersecting) {
+                                onIntersect(entry)
+                            } else {
+                                onNotIntersect(entry)
+                            }
                         })
                     },
-                },
+                    { threshold }
+                )
 
-                clearLeak: () => {
-                    this.#st.life.events.forEach(({ event, targetApi }) => this.removeEventListener(event, targetApi))
-
-                    this.#st.trigger.event = []
-                    this.#st.target.sync = []
-                    this.#st.target.api = []
-                    this.#st.life.events = []
-                },
-            }
-
-            //--------------------------------------------
-            // -------------------------------- Public API
-
-            // -- Empty
-        }
-
-        class Icon_01 extends HTMLElement {
-            //--------------------------------------------
-            // ------------------------------------- STATE
-
-            //---------------------- state ( private )
-
-            #st = { life: { isConnected: null } }
-
-            //---------------------- api (private)
-
-            #rf = { svg: { source: null }, ref: { container: null } } // RedFlow
-
-            //--------------------------------------------
-            // ----------------------------------- TRIGGER
-
-            //---------------------- trigger ( callback )
-
-            constructor() {
-                super()
-            }
-
-            static get observedAttributes() {
-                return ['rf-svg-source']
-            }
-
-            attributeChangedCallback(n, o, v) {
-                if (o !== v && this.#st.life.isConnected) {
-                    // -- Icon Attribute
-
-                    this.#fn.iconAttr()
-
-                    // -- Icon Render
-
-                    this.#fn.iconRender()
+                observer.observe(element)
+                const cleanup = () => observer.disconnect()
+                if (cache) {
+                    cache.push(cleanup)
                 }
-            }
-
-            connectedCallback() {
-                // -- Icon Attribute
-
-                this.#fn.iconAttr()
-
-                // -- Get rf-ref
-                this.#rf.ref.container = this.querySelector('[rf-ref-container]')
-                if (!this.#rf.ref.container) throw new Error('child ref "rf-ref-container" does not exist')
-
-                // -- Icon Render
-
-                this.#fn.iconRender()
-
-                // -- Element is Connected, now ChangedCallback works
-
-                this.#st.life.isConnected = true
-            }
-
-            disconnectedCallback() {
-                this.#fn.clearLeak()
-            }
-
-            //---------------------- trigger ( util )
-
-            #fn = {
-                iconAttr: () => {
-                    this.#rf.svg.source = this.getAttribute('rf-svg-source')
-                },
-                iconRender: () => {
-                    this.#rf.ref.container.innerHTML = decodeURIComponent(this.#rf.svg.source)
-                },
-                clearLeak: () => {
-                    this.#rf.svg.source = null
-                    this.#rf.ref.container = null
-                    this.#st.life.isConnected = null
-                },
-            }
-
-            //--------------------------------------------
-            // --------------------------------------- API
-
-            //---------------------- api (private)
-
-            // -- Empty
-
-            //---------------------- api (public)
-
-            // -- Empty
+                return cleanup
+            },
         }
-
- 
-        */
 
         // -- ✅ Modal 01 -- ✨ Version 2.0
 
@@ -436,9 +250,10 @@ function RedFlow ()
             // -- Element - State -------------------------
             // --------------------------------------------
 
-
-
-            #isConnected = false
+            #state = {
+                anim: { opt: {}, frX: 0, toX: 0, tween: null, prog: 0, obsv: { intersect: [] } },
+                node: { slide: null, isConnected: false },
+            }
 
             // --------------------------------------------
             // -- Lifecycle - Callbacks -------------------
@@ -451,26 +266,26 @@ function RedFlow ()
 
             static get observedAttributes ()
             {
-                return ['anim-play']
+                return ['anim-opt']
             }
 
             attributeChangedCallback (n, o, v)
             {
-                if (o !== v && this.#isConnected) {
-                    this.#anim_reset()
+                if (o !== v && this.#state.node.isConnected) {
+                    this.#api.animationReload()
                 }
             }
 
             connectedCallback ()
             {
-                this.#anim_init()
-                this.#isConnected = true
+                this.#api.animationInit()
+                this.#state.node.isConnected = true
             }
 
             disconnectedCallback ()
             {
-                this.#anim_clear()
-                this.#isConnected = false
+                this.#api.memoryClear()
+                this.#state.node.isConnected = false
             }
 
             // --------------------------------------------
@@ -483,123 +298,123 @@ function RedFlow ()
             // -- Private - API ---------------------------
             // --------------------------------------------
 
-            #anim_init ()
-            {
-                this.#_comp_set_el()
-                this.#_comp_set_ev()
-                this.#_comp_get_el()
-                this.#_anim_get_opt()
-                this.#_anim_run()
-            }
+            #api = {
+                animationInit: () =>
+                {
+                    this.#fn.elementSet()
+                    this.#fn.elementGet()
+                    this.#fn.animationSet()
+                    this.#fn.animationRun()
+                    this.#fn.observerSet()
+                },
 
-            #anim_reset ()
-            {
-                this.#_anim_get_opt()
-                this.#_anim_reset()
-                this.#_anim_run()
-            }
+                animationReload: () =>
+                {
+                    this.#fn.animationSet()
+                    this.#fn.animationReset()
+                    this.#fn.animationRun()
+                },
 
-            #anim_clear ()
-            {
-                this.#anim_tween?.progress(0).kill()
-                this.#anim_cache_intersect.forEach((cleanup) => cleanup())
-
-                this.#comp_slide = null
-                this.#anim_opt = {}
-                this.#anim_frX = 0
-                this.#anim_toX = 0
-                this.#anim_tween = null
-                this.#anim_tweenProg = 0
-                this.#anim_cache_intersect = []
+                memoryClear: () =>
+                {
+                    this.#fn.memoryClear()
+                },
             }
 
             // --------------------------------------------
             // -- Private - Helper ------------------------
             // --------------------------------------------
 
-            #comp_slide = null
+            #fn = {
+                elementSet: () =>
+                {
+                    const slide = Array.from(this.querySelectorAll('[ref-slider]'))
+                    for (let i = 1; i < slide.length; i++) slide[i].remove()
+                    this.appendChild(slide[0].cloneNode(true))
+                },
 
-            #anim_opt = {}
-            #anim_frX = 0
-            #anim_toX = 0
-            #anim_tween = null
-            #anim_tweenProg = 0
-            #anim_cache_intersect = []
+                elementGet: () =>
+                {
+                    this.#state.node.slide = this.querySelectorAll('[ref-slider]')
+                },
 
-            #_comp_set_el ()
-            {
-                const sliders = Array.from(this.querySelectorAll('[ref-slider]'))
+                observerSet: () =>
+                {
+                    fn.observeIntersect(
+                        this,
+                        () => this.#fn.animationResume(),
+                        () => this.#fn.animationPause(),
+                        this.#state.anim.obsv.intersect,
+                        0
+                    )
+                },
 
-                if (!sliders.length) throw new Error('No child ref "ref-slider"')
+                animationSet: () =>
+                {
+                    const anim = this.#state.anim
+                    const node = this.#state.node
 
-                for (let i = 1; i < sliders.length; i++) sliders[i].remove()
+                    const { direction = 'left', ...userOpts } = fn.getAttr(this, 'anim-opt', 'json') || {}
+                    const width = node.slide[0].getBoundingClientRect().width
 
-                this.appendChild(sliders[0].cloneNode(true))
-            }
+                    anim.frX = direction === 'left' ? 0 : -width
+                    anim.toX = direction === 'left' ? -width : 0
+                    anim.opt = { duration: 10, ease: 'none', repeat: -1, ...userOpts }
+                },
 
-            #_comp_get_el ()
-            {
-                this.#comp_slide = this.querySelectorAll('[ref-slider]')
-            }
+                animationRun: () =>
+                {
+                    const anim = this.#state.anim
+                    const node = this.#state.node
 
-            #_comp_set_ev ()
-            {
-                observeIntersect2(
-                    this,
-                    () => this.#_anim_resume(),
-                    () => this.#_anim_pause(),
-                    this.#anim_cache_intersect,
-                    0
-                )
-            }
+                    anim.tween = gsap.fromTo(node.slide, { x: anim.frX }, { x: anim.toX, ...anim.opt })
+                    anim.tween.progress(anim.prog || 0)
+                    anim.prog = 0
+                },
 
-            #_anim_get_opt ()
-            {
-                const _anim_deft = { duration: 10, ease: 'none', repeat: -1 }
-                const _anim_user = getAttr(this, 'anim-opt', 'json') || {}
-                const _direction = _anim_user.direction || 'left'
-                const _width = this.#comp_slide[0].getBoundingClientRect().width
+                animationReset: () =>
+                {
+                    const anim = this.#state.anim
 
-                delete this.#anim_opt.direction
+                    if (anim.tween) {
+                        anim.prog = anim.tween.progress()
+                        anim.tween.progress(0).kill()
+                        anim.tween = null
+                    }
+                },
 
-                this.#anim_frX = _direction === 'left' ? 0 : -_width
-                this.#anim_toX = _direction === 'left' ? -_width : 0
-                this.#anim_opt = { ..._anim_deft, ..._anim_user }
-            }
+                animationPause: () =>
+                {
+                    const anim = this.#state.anim
 
-            #_anim_run ()
-            {
-                this.#anim_tweenProg = this.#anim_tweenProg || 0
-                this.#anim_tween = gsap.fromTo(
-                    this.#comp_slide,
-                    { x: this.#anim_frX },
-                    { x: this.#anim_toX, ...this.#anim_opt }
-                )
-                this.#anim_tween.progress(this.#anim_tweenProg)
-                this.#anim_tweenProg = 0
-            }
+                    anim.tween.pause()
+                },
 
-            #_anim_reset ()
-            {
-                if (this.#anim_tween) {
-                    this.#anim_tweenProg = this.#anim_tween.progress()
-                    this.#anim_tween.progress(0).kill()
-                    this.#anim_tween = null
-                }
-            }
+                animationResume: () =>
+                {
+                    const anim = this.#state.anim
 
-            #_anim_pause ()
-            {
-                this.#anim_tween.pause()
-            }
+                    anim.tween.resume()
+                },
 
-            #_anim_resume ()
-            {
-                this.#anim_tween.resume()
+                memoryClear: () =>
+                {
+                    const anim = this.#state.anim
+                    const node = this.#state.node
+
+                    anim.tween?.progress(0).kill()
+                    anim.obsv.intersect.forEach((cleanup) => cleanup())
+
+                    anim.opt = {}
+                    anim.frX = 0
+                    anim.toX = 0
+                    anim.tween = null
+                    anim.prog = 0
+                    anim.obsv.intersect = []
+                    node.slide = null
+                },
             }
         }
-
-
 
         return { Marquee_01 }
     })()
