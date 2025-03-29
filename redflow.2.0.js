@@ -432,13 +432,12 @@ function RedFlow ()
 
         class Marquee_01 extends HTMLElement
         {
-            #anim_el = null
-            #anim_opt = {}
-            #anim_frX = 0
-            #anim_toX = 0
-            #anim_tween = null
-            #anim_tweenProg = 0
-            #anim_cahce_intersect = []
+            // --------------------------------------------
+            // -- Element - State -------------------------
+            // --------------------------------------------
+
+
+
             #isConnected = false
 
             // --------------------------------------------
@@ -486,18 +485,16 @@ function RedFlow ()
 
             #anim_init ()
             {
-                this.#_anim_set_el()
-                this.#_anim_set_event()
-                this.#_anim_get_el()
+                this.#_comp_set_el()
+                this.#_comp_set_ev()
+                this.#_comp_get_el()
                 this.#_anim_get_opt()
-                this.#_anim_get_frtox()
                 this.#_anim_run()
             }
 
             #anim_reset ()
             {
                 this.#_anim_get_opt()
-                this.#_anim_get_frtox()
                 this.#_anim_reset()
                 this.#_anim_run()
             }
@@ -505,76 +502,79 @@ function RedFlow ()
             #anim_clear ()
             {
                 this.#anim_tween?.progress(0).kill()
-                this.#anim_cahce_intersect.forEach((cleanup) => cleanup())
+                this.#anim_cache_intersect.forEach((cleanup) => cleanup())
 
-                this.#anim_el = null
+                this.#comp_slide = null
                 this.#anim_opt = {}
                 this.#anim_frX = 0
                 this.#anim_toX = 0
                 this.#anim_tween = null
                 this.#anim_tweenProg = 0
-                this.#anim_cahce_intersect = []
+                this.#anim_cache_intersect = []
             }
 
             // --------------------------------------------
             // -- Private - Helper ------------------------
             // --------------------------------------------
 
-            #_anim_set_el ()
+            #comp_slide = null
+
+            #anim_opt = {}
+            #anim_frX = 0
+            #anim_toX = 0
+            #anim_tween = null
+            #anim_tweenProg = 0
+            #anim_cache_intersect = []
+
+            #_comp_set_el ()
             {
                 const sliders = Array.from(this.querySelectorAll('[ref-slider]'))
 
-                if (!sliders.length) throw new Error('No child ref "ref-slider"') //! Replace Error Check
+                if (!sliders.length) throw new Error('No child ref "ref-slider"')
 
                 for (let i = 1; i < sliders.length; i++) sliders[i].remove()
 
                 this.appendChild(sliders[0].cloneNode(true))
             }
 
-            #_anim_set_event ()
+            #_comp_get_el ()
             {
-                // Pass the cleanup cache so the observer's disconnect function is stored
+                this.#comp_slide = this.querySelectorAll('[ref-slider]')
+            }
+
+            #_comp_set_ev ()
+            {
                 observeIntersect2(
                     this,
                     () => this.#_anim_resume(),
                     () => this.#_anim_pause(),
-                    this.#anim_cahce_intersect,
+                    this.#anim_cache_intersect,
                     0
                 )
-            }
-
-            #_anim_get_el ()
-            {
-                const anim_el = this.querySelectorAll('[ref-slider]')
-                this.#anim_el = anim_el
             }
 
             #_anim_get_opt ()
             {
                 const _anim_deft = { duration: 10, ease: 'none', repeat: -1 }
-                const _anim_user = getAttr(this, 'anim-play', 'json') || {}
-                const _anim_opt = { ..._anim_deft, ..._anim_user }
-
-                this.#anim_opt = _anim_opt
-            }
-
-            #_anim_get_frtox ()
-            {
-                const _direction = this.#anim_opt.direction || 'left'
-                const _width = this.#anim_el[0].getBoundingClientRect().width
-                const _frX = _direction === 'left' ? 0 : -_width
-                const _toX = _direction === 'left' ? -_width : 0
+                const _anim_user = getAttr(this, 'anim-opt', 'json') || {}
+                const _direction = _anim_user.direction || 'left'
+                const _width = this.#comp_slide[0].getBoundingClientRect().width
 
                 delete this.#anim_opt.direction
 
-                this.#anim_frX = _frX
-                this.#anim_toX = _toX
+                this.#anim_frX = _direction === 'left' ? 0 : -_width
+                this.#anim_toX = _direction === 'left' ? -_width : 0
+                this.#anim_opt = { ..._anim_deft, ..._anim_user }
             }
 
             #_anim_run ()
             {
                 this.#anim_tweenProg = this.#anim_tweenProg || 0
-                this.#anim_tween = gsap.fromTo(this.#anim_el, { x: this.#anim_frX }, { x: this.#anim_toX, ...this.#anim_opt })
+                this.#anim_tween = gsap.fromTo(
+                    this.#comp_slide,
+                    { x: this.#anim_frX },
+                    { x: this.#anim_toX, ...this.#anim_opt }
+                )
                 this.#anim_tween.progress(this.#anim_tweenProg)
                 this.#anim_tweenProg = 0
             }
@@ -599,445 +599,9 @@ function RedFlow ()
             }
         }
 
-        class Modal_01 extends HTMLElement
-        {
-            //--------------------------------------------
-            // --------------------------- Component State
 
-            // -- Data Attr
-            #animInit
-            #animOpen
-            #animClose
-            #syncGroup
 
-            // -- Ref Html
-            #backdrop
-            #container
-            #closeBtn
-            #triggerBtn
-
-            // -- Cache Array
-            #cacheClick
-
-            // -- Anim State
-            #gsapContainer
-            #gsapBackdrop
-
-            // -- Node State
-            #isOpen
-            #isConnected
-
-            //--------------------------------------------
-            // ----------------------- lifecycle callbacks
-
-            constructor()
-            {
-                super()
-                this.#nulling()
-                this.setAttribute('role', 'dialog')
-                this.setAttribute('aria-label', 'Modal Menu Navigation')
-            }
-
-            static get observedAttributes ()
-            {
-                return ['sync-group', 'anim-init', 'anim-open', 'anim-close']
-            }
-
-            attributeChangedCallback (n, o, v)
-            {
-                if (o !== v && this.#isConnected) {
-                    this.#attr()
-                }
-            }
-
-            connectedCallback ()
-            {
-                this.#attr()
-                this.#ref()
-                this.#init()
-                this.#isConnected = true
-            }
-
-            disconnectedCallback ()
-            {
-                this.#clearLeak()
-            }
-
-            //--------------------------------------------
-            // -------------------------  Utilities Helper
-
-            #attr ()
-            {
-                this.#syncGroup = getAttr(this, 'sync-group', 'string')
-                this.#animInit = getAttr(this, 'anim-init', 'json')
-                this.#animOpen = getAttr(this, 'anim-open', 'json')
-                this.#animClose = getAttr(this, 'anim-close', 'json')
-            }
-
-            #ref ()
-            {
-                this.#closeBtn = this.querySelector('[ref-close]')
-                this.#triggerBtn = this.querySelector('[ref-trigger]')
-                this.#backdrop = this.querySelector('[ref-backdrop]')
-                this.#container = this.querySelector('[ref-container]')
-            }
-
-            #init ()
-            {
-                observeEvent(this.#triggerBtn, 'click', () => this.#open(), this.#cacheClick)
-                observeEvent(this.#closeBtn, 'click', () => this.#close(), this.#cacheClick)
-
-                if (this.#backdrop) {
-                    this.#gsapBackdrop = gsap.timeline()
-                    this.#gsapBackdrop = gsap.set(this.#backdrop, { display: 'none', autoAlpha: 0 })
-                }
-
-                this.#gsapContainer = gsap.timeline()
-                this.#gsapContainer.set(this.#container, { display: 'none' }).set(this.#container, this.#animInit)
-            }
-
-            #open ()
-            {
-                if (this.#isOpen) {
-                    this.#close()
-                    return
-                }
-
-                const friends = document.querySelectorAll(`[sync-group='${this.#syncGroup}']`)
-                friends.forEach((element) =>
-                {
-                    element.api('close')
-                })
-
-                this.#animateOpen()
-            }
-
-            #close ()
-            {
-                this.#animateClose()
-            }
-
-            #animateOpen ()
-            {
-                if (this.#backdrop) {
-                    this.#gsapBackdrop?.kill()
-                    this.#gsapBackdrop = gsap.timeline()
-                    this.#gsapBackdrop.set(this.#backdrop, {
-                        display: 'block',
-                        autoAlpha: 1,
-                        duration: 0.3,
-                        ease: 'back.out(1.7)',
-                    })
-                }
-
-                this.#gsapContainer.kill()
-                this.#gsapContainer = gsap.timeline()
-                this.#gsapContainer
-                    .set(this.#container, { display: 'block' })
-                    .set(this.#container, this.#animInit)
-                    .to(this.#container, this.#animOpen)
-                this.#isOpen = true
-            }
-
-            #animateClose ()
-            {
-                if (this.#backdrop) {
-                    this.#gsapBackdrop?.kill()
-                    this.#gsapBackdrop = gsap.timeline()
-                    this.#gsapBackdrop.set(this.#backdrop, {
-                        display: 'block',
-                        autoAlpha: 0,
-                        duration: 0.3,
-                        ease: 'back.in(1.7)',
-                    })
-                }
-
-                this.#gsapContainer.kill()
-                this.#gsapContainer = gsap.timeline()
-                this.#gsapContainer.to(this.#container, this.#animClose).set(this.#container, { display: 'none' })
-                this.#isOpen = false
-            }
-
-            #clearLeak ()
-            {
-                this.#cacheClick.forEach((cleanup) => cleanup())
-
-                this.#gsapBackdrop?.progress(0).kill()
-                this.#gsapContainer.progress(0).kill()
-
-                this.#nulling()
-            }
-
-            #nulling ()
-            {
-                // -- Data Attr
-                this.#animInit = null
-                this.#animOpen = null
-                this.#animClose = null
-                this.#syncGroup = ''
-
-                // -- Ref Html
-                this.#backdrop = null
-                this.#container = null
-                this.#closeBtn = null
-                this.#triggerBtn = null
-
-                // -- Cache Array
-                this.#cacheClick = []
-
-                // -- Anim State
-                this.#gsapBackdrop = 0
-                this.#gsapContainer = 0
-
-                // -- Node State
-                this.#isOpen = null
-                this.#isConnected = null
-            }
-            //--------------------------------------------
-            // ------------------------------- Private API
-
-            #apiOpen ()
-            {
-                this.#open()
-            }
-
-            #apiClose ()
-            {
-                this.#close()
-            }
-
-            //--------------------------------------------
-            // -------------------------------- Public API
-
-            api (action)
-            {
-                switch (action) {
-                    case 'open':
-                        this.#apiOpen()
-                        break
-                    case 'close':
-                        this.#apiClose()
-                        break
-                    default:
-                        console.error('Invalid API action:', action)
-                }
-            }
-        }
-
-        class Slider_01 extends HTMLElement
-        {
-            //--------------------------------------------
-            // --------------------------- Component State
-
-            // -- Data Attr
-            #loopBack
-            #autoMode
-            #autoTime
-            #slideStep
-
-            // -- Ref Html
-            #mask
-            #slides
-            #nextBtn
-            #prevBtn
-
-            // -- Cache Array
-            #cacheClick
-            #cacheResize
-            #cacheInView
-
-            // -- Anim State
-            #gsapTween
-            #autoTimeId
-            #currentSlide
-
-            // -- Node State
-            #inView
-            #isConnected
-
-            //--------------------------------------------
-            // ----------------------- lifecycle callbacks
-
-            constructor()
-            {
-                super()
-                this.#nulling()
-                this.setAttribute('role', 'region')
-                this.setAttribute('aria-label', 'Image Slider')
-            }
-
-            static get observedAttributes ()
-            {
-                return ['loop-back', 'auto-mode', 'auto-time', 'slide-step']
-            }
-
-            attributeChangedCallback (n, o, v)
-            {
-                if (o !== v && this.#isConnected) {
-                    this.#attr()
-                }
-            }
-
-            connectedCallback ()
-            {
-                this.#attr()
-                this.#ref()
-                this.#init()
-                this.#auto()
-                this.#isConnected = true
-            }
-
-            disconnectedCallback ()
-            {
-                this.#clearLeak()
-            }
-
-            //--------------------------------------------
-            // -------------------------  Utilities Helper
-
-            #attr ()
-            {
-                this.#loopBack = getAttr(this, 'loop-back', 'boolean')
-                this.#autoMode = getAttr(this, 'auto-mode', 'boolean')
-                this.#autoTime = getAttr(this, 'auto-time', 'number')
-                this.#slideStep = getAttr(this, 'slide-step', 'number')
-            }
-
-            #ref ()
-            {
-                this.#mask = this.querySelector('[ref-mask]')
-                this.#slides = this.querySelectorAll('[ref-slide]')
-                this.#nextBtn = this.querySelector('[ref-next]')
-                this.#prevBtn = this.querySelector('[ref-prev]')
-            }
-
-            #init ()
-            {
-                if (this.#nextBtn) observeEvent(this.#nextBtn, 'click', () => this.#next(), this.#cacheClick)
-                if (this.#prevBtn) observeEvent(this.#prevBtn, 'click', () => this.#prev(), this.#cacheClick)
-                observeResize(this, () => this.#reset(), 500, this.#cacheResize)
-                observeIntersect(this, (e) => (this.#inView = e.isIntersecting), this.#cacheInView)
-            }
-
-            #auto ()
-            {
-                if (this.#autoMode && this.#inView) {
-                    this.#next()
-                }
-                this.#autoTimeId = setTimeout(() => this.#auto(), this.#autoTime)
-            }
-
-            #next ()
-            {
-                const newSlide = this.#currentSlide + this.#slideStep
-                if (newSlide <= this.#slides.length - 1) {
-                    this.#currentSlide = newSlide
-                    this.#animate()
-                } else if (this.#loopBack) {
-                    this.#currentSlide = 0
-                    this.#animate()
-                }
-            }
-
-            #prev ()
-            {
-                const newSlide = this.#currentSlide - this.#slideStep
-                if (newSlide >= 0) {
-                    this.#currentSlide = newSlide
-                    this.#animate()
-                } else if (this.#loopBack) {
-                    this.#currentSlide = this.#slides.length - 1
-                    this.#animate()
-                }
-            }
-
-            #animate ()
-            {
-                const targetSlide = this.#slides[this.#currentSlide]
-                const containerRect = this.#mask.getBoundingClientRect()
-                const slideRect = targetSlide.getBoundingClientRect()
-                const offset = slideRect.left - containerRect.left
-
-                this.#gsapTween?.kill()
-                this.#gsapTween = gsap.timeline()
-                this.#gsapTween.to(this.#mask, {
-                    x: -offset,
-                    duration: 0.5,
-                    ease: 'none',
-                })
-            }
-
-            #reset ()
-            {
-                const targetSlide = this.#slides[this.#currentSlide]
-                const containerRect = this.#mask.getBoundingClientRect()
-                const slideRect = targetSlide.getBoundingClientRect()
-                const offset = slideRect.left - containerRect.left
-
-                this.#gsapTween?.kill()
-                this.#gsapTween = gsap.timeline()
-                this.#gsapTween.to(this.#mask, {
-                    x: -offset,
-                    duration: 0,
-                })
-            }
-
-            #clearLeak ()
-            {
-                this.#cacheClick.forEach((cleanup) => cleanup())
-
-                this.#cacheResize.forEach((cleanup) => cleanup())
-
-                this.#cacheInView.forEach((cleanup) => cleanup())
-
-                this.#gsapTween?.progress(0).kill()
-
-                clearTimeout(this.#autoTimeId)
-
-                this.#nulling()
-            }
-
-            #nulling ()
-            {
-                // -- Data Attr
-                this.#loopBack = false
-                this.#autoMode = false
-                this.#autoTime = 0
-                this.#slideStep = 0
-
-                // -- Ref Html
-                this.#mask = null
-                this.#slides = null
-                this.#nextBtn = null
-                this.#prevBtn = null
-
-                // -- Cache Array
-                this.#cacheClick = []
-                this.#cacheResize = []
-                this.#cacheInView = []
-
-                // -- Anim State
-                this.#gsapTween = null
-                this.#autoTimeId = null
-                this.#currentSlide = 0
-
-                // -- Node State
-                this.#inView = false
-                this.#isConnected = false
-            }
-
-            //--------------------------------------------
-            // ------------------------------- Private API
-
-            // -- Empty
-
-            //--------------------------------------------
-            // -------------------------------- Public API
-
-            // -- Empty
-        }
-
-        return { Slider_01, Modal_01, Marquee_01 }
+        return { Marquee_01 }
     })()
 
     rf.lib.load(['gsap']).then(() =>
@@ -1045,8 +609,8 @@ function RedFlow ()
         //customElements.define('redflow-trigger-01', rf.component.Trigger_01)
         //customElements.define('redflow-icon-01', rf.component.Icon_01)
         customElements.define('redflow-marquee-01', rf.component.Marquee_01)
-        customElements.define('redflow-modal-01', rf.component.Modal_01)
-        customElements.define('redflow-slider-01', rf.component.Slider_01)
+        //customElements.define('redflow-modal-01', rf.component.Modal_01)
+        //customElements.define('redflow-slider-01', rf.component.Slider_01)
     })
 }
 
