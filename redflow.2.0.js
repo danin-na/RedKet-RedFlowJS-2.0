@@ -204,9 +204,9 @@ function RedFlow ()
                 return cleanup
             },
 
-            observeResize (element, callback, delay = 400, cache)
+            observeResize (element, callback, cache, delay = 400)
             {
-                const debouncedCallback = debounce(callback, delay)
+                const debouncedCallback = fn.debounce(callback, delay)
                 const observer = new ResizeObserver(debouncedCallback)
                 observer.observe(element)
                 const cleanup = () => observer.disconnect()
@@ -240,6 +240,255 @@ function RedFlow ()
                 }
                 return cleanup
             },
+        }
+
+        class Slider_01 extends HTMLElement
+        {
+            // --------------------------------------------
+            // -- Element - State -------------------------
+            // --------------------------------------------
+
+            #state = {
+                anim: {
+                    opt: {},
+                    loopBack: false,
+                    autoMode: false,
+                    autoTime: 0,
+                    autoPause: null,
+                    slideStep: 0,
+                    tween: null,
+                },
+                node: {
+                    mask: null,
+                    slide: null,
+                    nextBtn: null,
+                    prevBtn: null,
+                    currentSlide: 0,
+                    isConnected: false,
+                },
+                cache: {
+                    animClick: [],
+                    animItersect: [],
+                    animResize: [],
+                    autoTimeId: 0,
+                },
+            }
+
+            // --------------------------------------------
+            // -- Lifecycle - Callbacks -------------------
+            // --------------------------------------------
+
+            constructor()
+            {
+                super()
+            }
+
+            static get observedAttributes ()
+            {
+                return ['anim-opt']
+            }
+
+            attributeChangedCallback (n, o, v)
+            {
+                if (o !== v && this.#state.node.isConnected) {
+                    // -- Empty
+                }
+            }
+
+            connectedCallback ()
+            {
+                this.#api.animationInit()
+                this.#state.node.isConnected = true
+            }
+
+            disconnectedCallback ()
+            {
+                this.#api.memoryClear()
+                this.#state.node.isConnected = false
+            }
+
+            // --------------------------------------------
+            // -- Private - API ---------------------------
+            // --------------------------------------------
+
+            #api = {
+                animationInit: () =>
+                {
+                    this.#fn.elementGet()
+                    this.#fn.animationSet()
+                    this.#fn.observerSet()
+                },
+
+                memoryClear: () =>
+                {
+                    this.#fn.memoryClear()
+                },
+            }
+
+            // --------------------------------------------
+            // -- Private - Helper ------------------------
+            // --------------------------------------------
+            #fn = {
+                elementSet: () =>
+                {
+                    // -- empty
+                },
+
+                elementGet: () =>
+                {
+                    const node = this.#state.node
+
+                    node.mask = this.querySelector('[ref-mask]')
+                    node.slide = this.querySelectorAll('[ref-slide]')
+                    node.nextBtn = this.querySelector('[ref-next]')
+                    node.prevBtn = this.querySelector('[ref-prev]')
+                },
+
+                // TODO - finish it
+                observerSet: () =>
+                {
+                    const anim = this.#state.anim
+                    const node = this.#state.node
+                    const cache = this.#state.cache
+
+                    if (node.nextBtn) fn.observeEvent(node.nextBtn, 'click', () => this.#fn.animationNext())
+                    if (node.prevBtn) fn.observeEvent(node.prevBtn, 'click', () => this.#fn.animationPrev(), cache.animClick)
+                    fn.observeIntersect(
+                        this,
+                        () => this.#fn.animationAutoResume(),
+                        () => this.#fn.animationAutoPause(),
+                        cache.animItersect
+                    )
+                    fn.observeResize(this, () => this.#fn.animationReset(), cache.animResize, 500)
+                },
+
+                animationSet: () =>
+                {
+                    const anim = this.#state.anim
+
+                    const {
+                        loopBack = true,
+                        autoMode = true,
+                        autoTime = 5000,
+                        slideStep = 1,
+                        ...userOpts
+                    } = fn.getAttr(this, 'anim-opts', 'json') || {}
+
+                    //node.currentSlide = 0
+                    anim.loopBack = loopBack
+                    anim.autoMode = autoMode
+                    anim.autoTime = autoTime
+                    anim.slideStep = slideStep
+                    anim.opt = { duration: 0.5, ease: 'none', ...userOpts }
+                },
+
+                animationAuto: () =>
+                {
+                    const anim = this.#state.anim
+
+                    if (anim.autoMode && !anim.autoPause) {
+                        this.#fn.animationNext()
+                        cache.autoTimeId = setTimeout(() => this.#fn.animationAuto(), anim.autoTime)
+                    } else {
+                        clearTimeout(anim.autoTimeId)
+                    }
+                },
+
+                animationAutoPause: () =>
+                {
+                    const anim = this.#state.anim
+
+                    anim.autoPause = true
+                },
+
+                animationAutoResume: () =>
+                {
+                    const anim = this.#state.anim
+
+                    anim.autoPause = false
+                    this.#fn.animationAuto()
+                },
+
+                animationAutoToggle: () =>
+                {
+                    const anim = this.#state.anim
+
+                    anim.autoMode = !anim.autoMode
+                },
+
+                animationNext: () =>
+                {
+                    const anim = this.#state.anim
+                    const node = this.#state.node
+
+                    const newSlide = node.currentSlide + anim.slideStep
+                    if (newSlide <= node.slide.length - 1) {
+                        node.currentSlide = newSlide
+                        this.#fn.animationRun()
+                    } else if (anim.loopBack) {
+                        node.currentSlide = 0
+                        this.#fn.animationRun()
+                    }
+                },
+
+                animationPrev: () =>
+                {
+                    const anim = this.#state.anim
+                    const node = this.#state.node
+
+                    const newSlide = node.currentSlide - anim.slideStep
+                    if (newSlide >= 0) {
+                        node.currentSlide = newSlide
+                        this.#fn.animationRun()
+                    } else if (anim.loopBack) {
+                        node.currentSlide = node.slide.length - 1
+                        this.#fn.animationRun()
+                    }
+                },
+
+                animationRun: () =>
+                {
+                    const anim = this.#state.anim
+                    const node = this.#state.node
+
+                    const offset =
+                        node.slide[node.currentSlide].getBoundingClientRect().left - node.mask.getBoundingClientRect().left
+
+                    anim.tween?.kill()
+                    anim.tween = gsap.timeline()
+                    anim.tween.to(node.mask, { x: -offset, ...anim.opt })
+                },
+
+                animationReset: () =>
+                {
+                    const anim = this.#state.anim
+                    const node = this.#state.node
+
+                    const offset =
+                        node.slide[node.currentSlide].getBoundingClientRect().left - node.mask.getBoundingClientRect().left
+
+                    anim.tween?.kill()
+                    anim.tween = gsap.timeline()
+                    anim.tween.to(node.mask, { x: -offset, duration: 0 })
+                },
+
+                memoryClear: () =>
+                {
+                    const anim = this.#state.anim
+                    const node = this.#state.node
+                    const cache = this.#state.cache
+
+                    cache.animClick.forEach((cleanup) => cleanup())
+
+                    cache.animItersect.forEach((cleanup) => cleanup())
+
+                    cache.animResize.forEach((cleanup) => cleanup())
+
+                    this.#gsapTween?.progress(0).kill()
+
+                    clearTimeout(cache.autoTimeId)
+                },
+            }
         }
 
         // -- ✅ Modal 01 -- ✨ Version 2.0
@@ -335,16 +584,20 @@ function RedFlow ()
 
                 elementGet: () =>
                 {
-                    this.#state.node.slide = this.querySelectorAll('[ref-slider]')
+                    const node = this.#state.node
+
+                    node.slide = this.querySelectorAll('[ref-slider]')
                 },
 
                 observerSet: () =>
                 {
+                    const anim = this.#state.anim
+
                     fn.observeIntersect(
                         this,
                         () => this.#fn.animationResume(),
                         () => this.#fn.animationPause(),
-                        this.#state.anim.obsv.intersect,
+                        anim.obsv.intersect,
                         0
                     )
                 },
@@ -416,7 +669,7 @@ function RedFlow ()
             }
         }
 
-        return { Marquee_01 }
+        return { Marquee_01, Slider_01 }
     })()
 
     rf.lib.load(['gsap']).then(() =>
@@ -425,7 +678,7 @@ function RedFlow ()
         //customElements.define('redflow-icon-01', rf.component.Icon_01)
         customElements.define('redflow-marquee-01', rf.component.Marquee_01)
         //customElements.define('redflow-modal-01', rf.component.Modal_01)
-        //customElements.define('redflow-slider-01', rf.component.Slider_01)
+        customElements.define('redflow-slider-01', rf.component.Slider_01)
     })
 }
 

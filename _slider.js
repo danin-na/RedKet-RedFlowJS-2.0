@@ -1,19 +1,17 @@
-
 class Slider_01 extends HTMLElement
 {
     // --------------------------------------------
     // -- Element - State -------------------------
     // --------------------------------------------
 
-    #comp_mask = null
-    #comp_slides = null
-    #comp_nextBtn = null
-    #como_prevBtn = null
+    #state = {
+        anim: { opt: {}, loopBack: false, autoMode: false, autoTime: 0, autoTimeId: 0, slideStep: 0, tween: null },
+        node: { mask: null, slide: null, nextBtn: null, prevBtn: null, currentSlide: 0, isConnected: false },
+    }
 
-    #isConnected = false
-
-    //--------------------------------------------
-    // ----------------------- lifecycle callbacks
+    // --------------------------------------------
+    // -- Lifecycle - Callbacks -------------------
+    // --------------------------------------------
 
     constructor()
     {
@@ -22,172 +20,167 @@ class Slider_01 extends HTMLElement
 
     static get observedAttributes ()
     {
-        return ['loop-back', 'auto-mode', 'auto-time', 'slide-step']
+        return ["anim-opt"]
     }
 
     attributeChangedCallback (n, o, v)
     {
-        if (o !== v && this.#isConnected) {
-
+        if (o !== v && this.#state.node.isConnected) {
+            // -- Empty
         }
     }
 
     connectedCallback ()
     {
-        this.#attr()
-        this.#ref()
-        this.#_comp_set_event()
-        this.#auto()
-        this.#isConnected = true
+        this.#api.animationInit()
+        this.#state.node.isConnected = true
     }
 
     disconnectedCallback ()
     {
-        this.#clearLeak()
+        this.#api.memoryClear()
+        this.#state.node.isConnected = false
+    }
+
+    // --------------------------------------------
+    // -- Private - API ---------------------------
+    // --------------------------------------------
+
+    #api = {
+        animationInit: () =>
+        {
+            this.#fn.elementGet()
+            this.#fn.animationSet()
+            this.#fn.observerSet()
+            this.#fn.animationAuto()
+        },
+
+        memoryClear: () =>
+        {
+            this.#fn.memoryClear()
+        },
     }
 
     // --------------------------------------------
     // -- Private - Helper ------------------------
     // --------------------------------------------
+    #fn = {
+        elementSet: () =>
+        {
+            // -- empty
+        },
 
-    #_comp_set_el ()
-    {
-        // -- empty
-    }
+        elementGet: () =>
+        {
+            const node = this.#state.node
 
-    #_comp_get_el ()
-    {
-        this.#comp_mask = this.querySelector('[ref-mask]')
-        this.#comp_slides = this.querySelectorAll('[ref-slide]')
-        this.#comp_nextBtn = this.querySelector('[ref-next]')
-        this.#como_prevBtn = this.querySelector('[ref-prev]')
-    }
+            node.mask = this.querySelector("[ref-mask]")
+            node.slide = this.querySelectorAll("[ref-slide]")
+            node.nextBtn = this.querySelector("[ref-next]")
+            node.prevBtn = this.querySelector("[ref-prev]")
+        },
 
-    #_comp_set_event ()
-    {
-        /*
-        if (this.#comp_nextBtn) observeEvent(this.#comp_nextBtn, 'click', () => this.#_anim_next(), this.#cacheClick)
-        if (this.#como_prevBtn) observeEvent(this.#como_prevBtn, 'click', () => this.#prev(), this.#cacheClick)
+        // TODO - finish it
+        observerSet: () =>
+        {
+            const node = this.#state.node
+
+            if (node.nextBtn) observeEvent(node.nextBtn, 'click', () => this.#fn.animationNext())
+            // if (this.#como_prevBtn) observeEvent(this.#como_prevBtn, 'click', () => this.#prev())
+            /*
         observeResize(this, () => this.#reset(), 500, this.#cacheResize)
         observeIntersect(this, (e) => (this.#inView = e.isIntersecting), this.#cacheInView)
         */
+        },
+
+        animationSet: () =>
+        {
+            const anim = this.#state.anim
+            const node = this.#state.node
+
+            const {
+                loopBack = false,
+                autoMode = false,
+                autoTime = 0,
+                slideStep = 0,
+                ...userOpts
+            } = fn.getAttr(this, "anim-opts", "json") || {}
+
+            node.currentSlide = 0
+            anim.loopBack = loopBack
+            anim.autoMode = autoMode
+            anim.autoTime = autoTime
+            anim.slideStep = slideStep
+            anim.opt = { duration: 0.5, ease: "none", ...userOpts }
+        },
+
+        // TODO : fix later
+        animationAuto: (active) =>
+        {
+            const anim = this.#state.anim
+
+            if (anim.autoMode && active) {
+                this.#fn.animationNext()
+                anim.autoTimeId = setTimeout(() => this.#fn.animationAuto(), anim.autoTime)
+            }
+        },
+
+        animationNext: () =>
+        {
+            const anim = this.#state.anim
+            const node = this.#state.node
+
+            const newSlide = node.currentSlide - anim.slideStep
+            if (newSlide >= 0) {
+                node.currentSlide = newSlide
+                this.#fn.animationRun()
+            } else if (anim.loopBack) {
+                node.currentSlide = node.slide.length - 1
+                this.#fn.animationRun()
+            }
+        },
+
+        animationRun: () =>
+        {
+            const anim = this.#state.anim
+            const node = this.#state.node
+
+            const offset =
+                node.slide[node.currentSlide].getBoundingClientRect().left - node.mask.getBoundingClientRect().left
+
+            anim.tween?.kill()
+            anim.tween = gsap.timeline()
+            anim.tween.to(node.mask, { x: -offset, ...anim.opt })
+        },
+
+        animationReset: () =>
+        {
+            const anim = this.#state.anim
+            const node = this.#state.node
+
+            const offset =
+                node.slide[node.currentSlide].getBoundingClientRect().left - node.mask.getBoundingClientRect().left
+
+            anim.tween?.kill()
+            anim.tween = gsap.timeline()
+            anim.tween.to(node.mask, { x: -offset, duration: 0, })
+        },
+
+        // TODO - finish it
+        memoryClear: () =>
+        {
+            /*
+            this.#cacheClick.forEach((cleanup) => cleanup())
+    
+            this.#cacheResize.forEach((cleanup) => cleanup())
+    
+            this.#cacheInView.forEach((cleanup) => cleanup())
+    
+            this.#gsapTween?.progress(0).kill()
+    
+            clearTimeout(this.#anim_autoTimeId)
+            */
+        },
     }
 
-    #anim_opt
-    #anim_loopBack
-    #anim_autoMode
-    #anim_autoTime
-    #anim_slideStep
-    #anim_autoTimeId
-
-    #_anim_get_opt ()
-    {
-        const _anim_user = getAttr(this, 'anim-opts', 'json') || {}
-
-        this.#anim_loopBack = _anim_user.loopBack || false
-        this.#anim_autoMode = _anim_user.autoMode || false
-        this.#anim_autoTime = _anim_user.autoTime || 0
-        this.#anim_slideStep = _anim_user.slideStep || 0
-
-        delete _anim_user.loopBack
-        delete _anim_user.autoMode
-        delete _anim_user.autoTime
-        delete _anim_user.sideStep
-
-        const _anim_deft = { duration: 0.5, ease: 'none' }
-        this.#anim_opt = { ..._anim_deft, ..._anim_user }
-    }
-
-
-
-
-
-    #auto ()
-    {
-        if (this.#anim_autoMode && this.#inView) {
-            this.#_anim_next()
-        }
-        this.#anim_autoTimeId = setTimeout(() => this.#auto(), this.#anim_autoTime)
-    }
-
-    #_anim_next ()
-    {
-        const newSlide = this.#currentSlide + this.#anim_slideStep
-        if (newSlide <= this.#comp_slides.length - 1) {
-            this.#currentSlide = newSlide
-            this.#animate()
-        } else if (this.#anim_loopBack) {
-            this.#currentSlide = 0
-            this.#animate()
-        }
-    }
-
-    #prev ()
-    {
-        const newSlide = this.#currentSlide - this.#anim_slideStep
-        if (newSlide >= 0) {
-            this.#currentSlide = newSlide
-            this.#animate()
-        } else if (this.#anim_loopBack) {
-            this.#currentSlide = this.#comp_slides.length - 1
-            this.#animate()
-        }
-    }
-
-    #anim_tween
-
-    #_anim_run ()
-    {
-        const targetSlide = this.#comp_slides[this.#currentSlide]
-        const containerRect = this.#comp_mask.getBoundingClientRect()
-        const slideRect = targetSlide.getBoundingClientRect()
-        const offset = slideRect.left - containerRect.left
-
-        this.#anim_tween?.kill()
-        this.#anim_tween = gsap.timeline()
-        this.#anim_tween.to(this.#comp_mask, {
-            x: -offset,
-            duration: 0.5,
-            ease: 'none',
-        })
-    }
-
-    #reset ()
-    {
-        const targetSlide = this.#comp_slides[this.#currentSlide]
-        const containerRect = this.#comp_mask.getBoundingClientRect()
-        const slideRect = targetSlide.getBoundingClientRect()
-        const offset = slideRect.left - containerRect.left
-
-        this.#anim_tween?.kill()
-        this.#anim_tween = gsap.timeline()
-        this.#anim_tween.to(this.#comp_mask, {
-            x: -offset,
-            duration: 0,
-        })
-    }
-
-    #clearLeak ()
-    {
-        this.#cacheClick.forEach((cleanup) => cleanup())
-
-        this.#cacheResize.forEach((cleanup) => cleanup())
-
-        this.#cacheInView.forEach((cleanup) => cleanup())
-
-        this.#gsapTween?.progress(0).kill()
-
-        clearTimeout(this.#anim_autoTimeId)
-    }
-
-
-    //--------------------------------------------
-    // ------------------------------- Private API
-
-    // -- Empty
-
-    //--------------------------------------------
-    // -------------------------------- Public API
-
-    // -- Empty
 }
