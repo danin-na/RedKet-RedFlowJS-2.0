@@ -242,6 +242,209 @@ function RedFlow ()
             },
         }
 
+        class Modal_01 extends HTMLElement
+        {
+            // --------------------------------------------
+            // -- Element - State -------------------------
+            // --------------------------------------------
+
+            #state = {
+                sync: { selfId: '', groupId: '' },
+                node: { back: null, item: null, open: null, close: null },
+                anim: { optInit: [], optOpen: [], optClose: [] },
+                stat: { isOpen: false, isConnected: false },
+                tween: { item: null, back: null },
+                cache: { animClick: [] },
+            }
+
+            //--------------------------------------------
+            // ----------------------- lifecycle callbacks
+
+            constructor()
+            {
+                super()
+            }
+
+            static get observedAttributes ()
+            {
+                return ['sync-selfid', 'sync-groupid', 'anim-optinit', 'anim-optopen', 'anim-optclose']
+            }
+
+            attributeChangedCallback (n, o, v)
+            {
+                if (o !== v && this.#state.stat.isConnected) {
+                    // -- Empty
+                }
+            }
+
+            connectedCallback ()
+            {
+                this.#api.animationInit()
+                this.#state.stat.isConnected = true
+            }
+
+            disconnectedCallback ()
+            {
+                this.#api.memoryClear()
+                this.#state.stat.isConnected = false
+            }
+
+            // --------------------------------------------
+            // -- Public - API ----------------------------
+            // --------------------------------------------
+
+            api (callback)
+            {
+                switch (callback) {
+                    case 'close':
+                        console.log('close')
+                        this.#fn.animationClose();
+                        break;
+
+                    default:
+                        console.warn(`Unhandled callback: ${callback}`);
+                }
+            }
+
+
+            // --------------------------------------------
+            // -- Private - API ---------------------------
+            // --------------------------------------------
+
+            #api = {
+                animationInit: () =>
+                {
+                    this.#fn.elementSet()
+                    this.#fn.animationSet()
+                    this.#fn.animationRun()
+                    this.#fn.observerSet()
+                },
+
+                memoryClear: () =>
+                {
+                    this.#fn.memoryClear()
+                },
+            }
+
+            // --------------------------------------------
+            // -- Private - Helper ------------------------
+            // --------------------------------------------
+
+            #fn = {
+                elementSet: () =>
+                {
+                    const { sync, node, } = this.#state;
+
+                    sync.selfId = fn.getAttr(this, 'sync-selfid', 'string') || {}
+                    sync.groupId = fn.getAttr(this, 'sync-groupid', 'string') || {}
+                    node.back = this.querySelector(`[node-back="${sync.selfId}"]`)
+                    node.item = this.querySelector(`[node-item="${sync.selfId}"]`)
+                    node.open = this.querySelector(`[node-open="${sync.selfId}"]`)
+                    node.close = this.querySelector(`[node-close="${sync.selfId}"]`)
+                },
+
+                animationSet: () =>
+                {
+                    const { anim, } = this.#state;
+
+                    const { ...userOptsInit } = fn.getAttr(this, 'anim-optinit', 'json') || {}
+                    const { ...userOptsOpen } = fn.getAttr(this, 'anim-optopen', 'json') || {}
+                    const { ...userOptsClose } = fn.getAttr(this, 'anim-optclose', 'json') || {}
+                    anim.optInit = { display: 'none', autoAlpha: 0, ...userOptsInit }
+                    anim.optOpen = { display: 'block', autoAlpha: 1, ...userOptsOpen }
+                    anim.optClose = { autoAlpha: 0, ...userOptsClose }
+                },
+
+                animationRun: () =>
+                {
+                    const { anim, node, tween } = this.#state;
+
+                    if (node.back) {
+                        tween.back?.kill()
+                        tween.back = gsap.timeline()
+                        tween.back = gsap.set(node.back, { display: 'none', autoAlpha: 0 })
+                    }
+                    if (node.item) {
+                        tween.item?.kill()
+                        tween.item = gsap.timeline()
+                        tween.item.set(node.item, { ...anim.optInit })
+                    }
+                },
+
+                animationOpen: () =>
+                {
+                    const { sync, anim, node, stat, tween } = this.#state;
+
+                    if (stat.isOpen) {
+                        this.#fn.animationClose()
+                        return
+                    }
+
+                    const friends = document.querySelectorAll(`[sync-groupid='${sync.groupId}']`)
+                    friends.forEach((element) =>
+                    {
+                        element.api('close')
+                    })
+
+                    if (node.back) {
+                        tween.back?.kill()
+                        tween.back = gsap.timeline()
+                        tween.back.set(node.back, { display: 'block', autoAlpha: 1, duration: 0.2, ease: 'none' })
+                    }
+                    if (node.item) {
+                        tween.item?.kill()
+                        tween.item = gsap.timeline()
+                        tween.item.set(node.item, { ...anim.optInit }).to(node.item, { ...anim.optOpen })
+                        stat.isOpen = true
+                    }
+                },
+
+                animationClose: () =>
+                {
+                    const { anim, node, stat, tween } = this.#state
+
+                    if (node.back) {
+                        tween.back?.kill()
+                        tween.back = gsap.timeline()
+                        tween.back.set(node.back, { display: 'none', autoAlpha: 0, duration: 0.2, ease: 'none' })
+                    }
+                    if (node.item) {
+                        tween.item?.kill()
+                        tween.item = gsap.timeline()
+                        tween.item.set(node.item, { ...anim.optClose }).to(node.item, { ...anim.optInit })
+                        stat.isOpen = false
+                    }
+                },
+
+                observerSet: () =>
+                {
+                    const { node, cache } = this.#state
+
+                    fn.observeEvent(node.open, 'click', () => this.#fn.animationOpen(), cache.animClick)
+                    fn.observeEvent(node.close, 'click', () => this.#fn.animationClose(), cache.animClick)
+                },
+
+                memoryClear: () =>
+                {
+                    const { sync, anim, node, stat, tween, cache } = this.#state
+
+                    cache.animClick.forEach((cleanup) => cleanup())
+
+                    tween.back?.progress(0).kill()
+                    tween.item?.progress(0).kill()
+
+                    sync.selfId = '', sync.groupId = ''
+                    anim.optInit = [], anim.optOpen = [], anim.optClose = []
+                    node.back = null, node.item = null, node.open = null, node.close = null
+                    tween.back = null, tween.item = null
+                    stat.isOpen = false
+                    cache.animClick = []
+                }
+            }
+        }
+
+        // -- ✅ Slider 01 -- ✨ Version 2.0
+
         class Slider_01 extends HTMLElement
         {
             // --------------------------------------------
@@ -337,20 +540,16 @@ function RedFlow ()
                 elementGet: () =>
                 {
                     const node = this.#state.node
-
                     node.mask = this.querySelector('[ref-mask]')
                     node.slide = this.querySelectorAll('[ref-slide]')
                     node.nextBtn = this.querySelector('[ref-next]')
                     node.prevBtn = this.querySelector('[ref-prev]')
                 },
 
-                // TODO - finish it
                 observerSet: () =>
                 {
-                    const anim = this.#state.anim
                     const node = this.#state.node
                     const cache = this.#state.cache
-
                     if (node.nextBtn) fn.observeEvent(node.nextBtn, 'click', () => this.#fn.animationNext())
                     if (node.prevBtn) fn.observeEvent(node.prevBtn, 'click', () => this.#fn.animationPrev(), cache.animClick)
                     fn.observeIntersect(
@@ -365,7 +564,6 @@ function RedFlow ()
                 animationSet: () =>
                 {
                     const anim = this.#state.anim
-
                     const {
                         loopBack = true,
                         autoMode = true,
@@ -373,8 +571,6 @@ function RedFlow ()
                         slideStep = 1,
                         ...userOpts
                     } = fn.getAttr(this, 'anim-opts', 'json') || {}
-
-                    //node.currentSlide = 0
                     anim.loopBack = loopBack
                     anim.autoMode = autoMode
                     anim.autoTime = autoTime
@@ -385,35 +581,27 @@ function RedFlow ()
                 animationAuto: () =>
                 {
                     const anim = this.#state.anim
-
+                    const cache = this.#state.cache
+                    clearTimeout(cache.autoTimeId)
                     if (anim.autoMode && !anim.autoPause) {
                         this.#fn.animationNext()
                         cache.autoTimeId = setTimeout(() => this.#fn.animationAuto(), anim.autoTime)
-                    } else {
-                        clearTimeout(anim.autoTimeId)
                     }
                 },
 
                 animationAutoPause: () =>
                 {
                     const anim = this.#state.anim
-
+                    const cache = this.#state.cache
                     anim.autoPause = true
+                    clearTimeout(cache.autoTimeId)
                 },
 
                 animationAutoResume: () =>
                 {
                     const anim = this.#state.anim
-
                     anim.autoPause = false
                     this.#fn.animationAuto()
-                },
-
-                animationAutoToggle: () =>
-                {
-                    const anim = this.#state.anim
-
-                    anim.autoMode = !anim.autoMode
                 },
 
                 animationNext: () =>
@@ -479,14 +667,23 @@ function RedFlow ()
                     const cache = this.#state.cache
 
                     cache.animClick.forEach((cleanup) => cleanup())
-
                     cache.animItersect.forEach((cleanup) => cleanup())
-
                     cache.animResize.forEach((cleanup) => cleanup())
-
-                    this.#gsapTween?.progress(0).kill()
-
                     clearTimeout(cache.autoTimeId)
+                    anim.tween?.progress(0).kill()
+
+                    anim.opt = []
+                    anim.loopBack = false
+                    anim.autoMode = false
+                    anim.autoPause = false
+                    anim.autoTime = 0
+                    anim.slideStep = 0
+                    anim.tween = null
+                    node.mask = null
+                    node.slide = null
+                    node.nextBtn = null
+                    node.prevBtn = null
+                    node.currentSlide = 0
                 },
             }
         }
@@ -669,15 +866,14 @@ function RedFlow ()
             }
         }
 
-        return { Marquee_01, Slider_01 }
+        return { Marquee_01, Slider_01, Modal_01 }
     })()
 
     rf.lib.load(['gsap']).then(() =>
     {
-        //customElements.define('redflow-trigger-01', rf.component.Trigger_01)
         //customElements.define('redflow-icon-01', rf.component.Icon_01)
         customElements.define('redflow-marquee-01', rf.component.Marquee_01)
-        //customElements.define('redflow-modal-01', rf.component.Modal_01)
+        customElements.define('redflow-modal-01', rf.component.Modal_01)
         customElements.define('redflow-slider-01', rf.component.Slider_01)
     })
 }

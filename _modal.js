@@ -1,30 +1,17 @@
 class Modal_01 extends HTMLElement
 {
-    //--------------------------------------------
-    // --------------------------- Component State
+    // --------------------------------------------
+    // -- Element - State -------------------------
+    // --------------------------------------------
 
-    // -- Data Attr
-    #animInit
-    #animOpen
-    #animClose
-    #syncGroup
-
-    // -- Ref Html
-    #backdrop
-    #container
-    #closeBtn
-    #triggerBtn
-
-    // -- Cache Array
-    #cacheClick
-
-    // -- Anim State
-    #gsapContainer
-    #gsapBackdrop
-
-    // -- Node State
-    #isOpen
-    #isConnected
+    #state = {
+        sync: { selfId: '', groupId: '' },
+        node: { back: null, item: null, open: null, close: null },
+        anim: { optInit: [], optOpen: [], optClose: [] },
+        gsap: { tweenItem: null, tweenBack: null },
+        stat: { isOpen: false, isConnected: false },
+        cache: { animClick: [] },
+    }
 
     //--------------------------------------------
     // ----------------------- lifecycle callbacks
@@ -32,193 +19,182 @@ class Modal_01 extends HTMLElement
     constructor()
     {
         super()
-        this.#nulling()
-        this.setAttribute('role', 'dialog')
-        this.setAttribute('aria-label', 'Modal Menu Navigation')
     }
 
     static get observedAttributes ()
     {
-        return ['sync-group', 'anim-init', 'anim-open', 'anim-close']
+        return ['sync-selfid', 'sync-groupid', 'anim-optinit', 'anim-optopen', 'anim-optclose']
     }
 
     attributeChangedCallback (n, o, v)
     {
-        if (o !== v && this.#isConnected) {
-            this.#attr()
+        if (o !== v && this.#state.stat.isConnected) {
+            // -- Empty
         }
     }
 
     connectedCallback ()
     {
-        this.#attr()
-        this.#ref()
-        this.#init()
-        this.#isConnected = true
+        this.#api.animationInit()
+        this.#state.stat.isConnected = true
     }
 
     disconnectedCallback ()
     {
-        this.#clearLeak()
+        this.#api.memoryClear()
+        this.#state.stat.isConnected = false
     }
 
-    //--------------------------------------------
-    // -------------------------  Utilities Helper
+    // --------------------------------------------
+    // -- Public - API ----------------------------
+    // --------------------------------------------
 
-    #attr ()
+    api (callback)
     {
-        this.#syncGroup = getAttr(this, 'sync-group', 'string')
-        this.#animInit = getAttr(this, 'anim-init', 'json')
-        this.#animOpen = getAttr(this, 'anim-open', 'json')
-        this.#animClose = getAttr(this, 'anim-close', 'json')
-    }
-
-    #ref ()
-    {
-        this.#closeBtn = this.querySelector('[ref-close]')
-        this.#triggerBtn = this.querySelector('[ref-trigger]')
-        this.#backdrop = this.querySelector('[ref-backdrop]')
-        this.#container = this.querySelector('[ref-container]')
-    }
-
-    #init ()
-    {
-        observeEvent(this.#triggerBtn, 'click', () => this.#open(), this.#cacheClick)
-        observeEvent(this.#closeBtn, 'click', () => this.#close(), this.#cacheClick)
-
-        if (this.#backdrop) {
-            this.#gsapBackdrop = gsap.timeline()
-            this.#gsapBackdrop = gsap.set(this.#backdrop, { display: 'none', autoAlpha: 0 })
-        }
-
-        this.#gsapContainer = gsap.timeline()
-        this.#gsapContainer.set(this.#container, { display: 'none' }).set(this.#container, this.#animInit)
-    }
-
-    #open ()
-    {
-        if (this.#isOpen) {
-            this.#close()
-            return
-        }
-
-        const friends = document.querySelectorAll(`[sync-group='${this.#syncGroup}']`)
-        friends.forEach((element) =>
-        {
-            element.api('close')
-        })
-
-        this.#animateOpen()
-    }
-
-    #close ()
-    {
-        this.#animateClose()
-    }
-
-    #animateOpen ()
-    {
-        if (this.#backdrop) {
-            this.#gsapBackdrop?.kill()
-            this.#gsapBackdrop = gsap.timeline()
-            this.#gsapBackdrop.set(this.#backdrop, {
-                display: 'block',
-                autoAlpha: 1,
-                duration: 0.3,
-                ease: 'back.out(1.7)',
-            })
-        }
-
-        this.#gsapContainer.kill()
-        this.#gsapContainer = gsap.timeline()
-        this.#gsapContainer
-            .set(this.#container, { display: 'block' })
-            .set(this.#container, this.#animInit)
-            .to(this.#container, this.#animOpen)
-        this.#isOpen = true
-    }
-
-    #animateClose ()
-    {
-        if (this.#backdrop) {
-            this.#gsapBackdrop?.kill()
-            this.#gsapBackdrop = gsap.timeline()
-            this.#gsapBackdrop.set(this.#backdrop, {
-                display: 'block',
-                autoAlpha: 0,
-                duration: 0.3,
-                ease: 'back.in(1.7)',
-            })
-        }
-
-        this.#gsapContainer.kill()
-        this.#gsapContainer = gsap.timeline()
-        this.#gsapContainer.to(this.#container, this.#animClose).set(this.#container, { display: 'none' })
-        this.#isOpen = false
-    }
-
-    #clearLeak ()
-    {
-        this.#cacheClick.forEach((cleanup) => cleanup())
-
-        this.#gsapBackdrop?.progress(0).kill()
-        this.#gsapContainer.progress(0).kill()
-
-        this.#nulling()
-    }
-
-    #nulling ()
-    {
-        // -- Data Attr
-        this.#animInit = null
-        this.#animOpen = null
-        this.#animClose = null
-        this.#syncGroup = ''
-
-        // -- Ref Html
-        this.#backdrop = null
-        this.#container = null
-        this.#closeBtn = null
-        this.#triggerBtn = null
-
-        // -- Cache Array
-        this.#cacheClick = []
-
-        // -- Anim State
-        this.#gsapBackdrop = 0
-        this.#gsapContainer = 0
-
-        // -- Node State
-        this.#isOpen = null
-        this.#isConnected = null
-    }
-    //--------------------------------------------
-    // ------------------------------- Private API
-
-    #apiOpen ()
-    {
-        this.#open()
-    }
-
-    #apiClose ()
-    {
-        this.#close()
-    }
-
-    //--------------------------------------------
-    // -------------------------------- Public API
-
-    api (action)
-    {
-        switch (action) {
-            case 'open':
-                this.#apiOpen()
-                break
+        switch (callback) {
             case 'close':
-                this.#apiClose()
-                break
+                console.log('close')
+                this.#fn.animationClose();
+                break;
+
             default:
-                console.error('Invalid API action:', action)
+                console.warn(`Unhandled callback: ${callback}`);
+        }
+    }
+
+
+    // --------------------------------------------
+    // -- Private - API ---------------------------
+    // --------------------------------------------
+
+    #api = {
+        animationInit: () =>
+        {
+            this.#fn.elementSet()
+            this.#fn.animationSet()
+            this.#fn.animationRun()
+            this.#fn.observerSet()
+        },
+
+        memoryClear: () =>
+        {
+            this.#fn.memoryClear()
+        },
+    }
+
+    // --------------------------------------------
+    // -- Private - Helper ------------------------
+    // --------------------------------------------
+
+    #fn = {
+        elementSet: () =>
+        {
+            const { sync, node, } = this.#state;
+
+            sync.selfId = fn.getAttr(this, 'sync-selfid', 'string') || {}
+            sync.groupId = fn.getAttr(this, 'sync-groupid', 'string') || {}
+            node.back = this.querySelector(`[node-back="${sync.selfId}"]`)
+            node.item = this.querySelector(`[node-item="${sync.selfId}"]`)
+            node.open = this.querySelector(`[node-open="${sync.selfId}"]`)
+            node.close = this.querySelector(`[node-close="${sync.selfId}"]`)
+        },
+
+        animationSet: () =>
+        {
+            const { anim, } = this.#state;
+
+            const { ...userOptsInit } = fn.getAttr(this, 'anim-optinit', 'json') || {}
+            const { ...userOptsOpen } = fn.getAttr(this, 'anim-optopen', 'json') || {}
+            const { ...userOptsClose } = fn.getAttr(this, 'anim-optclose', 'json') || {}
+            anim.optInit = { display: 'none', autoAlpha: 0, ...userOptsInit }
+            anim.optOpen = { display: 'block', autoAlpha: 1, ...userOptsOpen }
+            anim.optClose = { autoAlpha: 0, ...userOptsClose }
+        },
+
+        animationRun: () =>
+        {
+            const { anim, node, gsap } = this.#state;
+
+            if (node.back) {
+                gsap.tweenBack?.kill()
+                gsap.tweenBack = gsap.timeline()
+                gsap.tweenBack = gsap.set(node.back, { display: 'none', autoAlpha: 0 })
+            }
+            if (node.item) {
+                gsap.tweenItem?.kill()
+                gsap.tweenItem = gsap.timeline()
+                gsap.tweenItem.set(node.item, { ...anim.optInit })
+            }
+        },
+
+        animationOpen: () =>
+        {
+            const { sync, anim, node, stat, gsap } = this.#state;
+
+            if (stat.isOpen) {
+                this.#fn.animationClose()
+                return
+            }
+
+            const friends = document.querySelectorAll(`[sync-groupid='${sync.groupId}']`)
+            friends.forEach((element) =>
+            {
+                element.api('close')
+            })
+
+            if (node.back) {
+                gsap.tweenBack?.kill()
+                gsap.tweenBack = gsap.timeline()
+                gsap.tweenBack.set(node.back, { display: 'block', autoAlpha: 1, duration: 0.2, ease: 'none' })
+            }
+            if (node.item) {
+                gsap.tweenItem?.kill()
+                gsap.tweenItem = gsap.timeline()
+                gsap.tweenItem.set(node.item, { ...anim.optInit }).to(node.item, { ...anim.optOpen })
+                stat.isOpen = true
+            }
+        },
+
+        animationClose: () =>
+        {
+            const { anim, node, stat, gsap } = this.#state
+
+            if (node.back) {
+                gsap.tweenBack?.kill()
+                gsap.tweenBack = gsap.timeline()
+                gsap.tweenBack.set(node.back, { display: 'none', autoAlpha: 0, duration: 0.2, ease: 'none' })
+            }
+            if (node.item) {
+                gsap.tweenItem?.kill()
+                gsap.tweenItem = gsap.timeline()
+                gsap.tweenItem.set(node.item, { ...anim.optClose }).to(node.item, { ...anim.optInit })
+                stat.isOpen = false
+            }
+        },
+
+        observerSet: () =>
+        {
+            const { node, cache } = this.#state
+
+            fn.observeEvent(node.open, 'click', () => this.#fn.animationOpen(), cache.animClick)
+            fn.observeEvent(node.close, 'click', () => this.#fn.animationClose(), cache.animClick)
+        },
+
+        memoryClear: () =>
+        {
+            const { sync, anim, node, stat, gsap, cache } = this.#state
+
+            cache.animClick.forEach((cleanup) => cleanup())
+
+            gsap.tweenBack?.progress(0).kill()
+            gsap.tweenItem?.progress(0).kill()
+
+            sync.selfId = '', sync.groupId = ''
+            anim.optInit = [], anim.optOpen = [], anim.optClose = []
+            node.back = null, node.item = null, node.open = null, node.close = null
+            gsap.tweenBack = null, gsap.tweenItem = null
+            stat.isOpen = false
+            cache.animClick = []
         }
     }
 }
