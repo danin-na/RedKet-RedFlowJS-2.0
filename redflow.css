@@ -218,7 +218,7 @@
 .ts-325 { font-size: var(--st--325); }
 .ts-350 { font-size: var(--st--350); }
 
-root {
+:root {
 	--c--white: #fff;
 	--c--100: whitesmoke;
 	--c--200: #cbd9ed;
