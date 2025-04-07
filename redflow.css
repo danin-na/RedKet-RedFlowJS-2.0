@@ -217,3 +217,46 @@
 .ts-300 { font-size: var(--st--300); }
 .ts-325 { font-size: var(--st--325); }
 .ts-350 { font-size: var(--st--350); }
+
+root {
+	--c--white: #fff;
+	--c--100: whitesmoke;
+	--c--200: #cbd9ed;
+	--c--300: #a1bee5;
+	--c--400: #78a2de;
+	--c--500: #4e87d6;
+	--c--600: #246bce;
+	--c--700: #1e59ac;
+	--c--800: #184789;
+	--c--900: #123667;
+	--c--950: #0c2445;
+	--c--black: #000;
+}
+
+.tc-white { color: var(--c--white) }
+.tc-050 { color: var(--c--050) }
+.tc-100 { color: var(--c--100) }
+.tc-200 { color: var(--c--200) }
+.tc-300 { color: var(--c--300) }
+.tc-400 { color: var(--c--400) }
+.tc-500 { color: var(--c--500) }
+.tc-600 { color: var(--c--600) }
+.tc-700 { color: var(--c--700) }
+.tc-800 { color: var(--c--800) }
+.tc-900 { color: var(--c--900) }
+.tc-950 { color: var(--c--950) }
+.tc-black { color: var(--c--black) }
+
+.bg-white { background-color: var(--c--white) }
+.bg-050 { background-color: var(--c--050) }
+.bg-100 { background-color: var(--c--100) }
+.bg-200 { background-color: var(--c--200) }
+.bg-300 { background-color: var(--c--300) }
+.bg-400 { background-color: var(--c--400) }
+.bg-500 { background-color: var(--c--500) }
+.bg-600 { background-color: var(--c--600) }
+.bg-700 { background-color: var(--c--700) }
+.bg-800 { background-color: var(--c--800) }
+.bg-900 { background-color: var(--c--900) }
+.bg-950 { background-color: var(--c--950) }
+.bg-black { background-color: var(--c--black) }
