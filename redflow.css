@@ -48,6 +48,17 @@
 	--sg--25: clamp(0.43rem, 0.4rem + 0.1vw, 0.48rem);
 }
 
+.h-screen { height: 100vh; }
+.h-full { height: 100%; }
+
+.w-screen { width: 100vw; }
+.w-full { width: 100%; }
+.w-550 { width: var(--sg--550); }
+.w-500 { width: var(--sg--500); }
+.w-450 { width: var(--sg--450); }
+.w-400 { width: var(--sg--400); }
+
+
 .g-50 { gap: var(--sg--50); }
 .g-100 { gap: var(--sg--100); }
 .g-150 { gap: var(--sg--150); }
