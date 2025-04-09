@@ -1,0 +1,17 @@
+:root {
+    --base: var(--user--color);
+    --c-base: 0.05;
+
+    --c--black: black;
+    --c--950: Oklch(from var(--base) 10% calc(var(--c-base) + 0.5 * c) h);
+    --c--900: Oklch(from var(--base) 20% calc(var(--c-base) + 0.5 * c) h);
+    --c--800: Oklch(from var(--base) 30% calc(var(--c-base) + 0.5 * c) h);
+    --c--700: Oklch(from var(--base) 40% calc(var(--c-base) + 0.5 * c) h);
+    --c--600: Oklch(from var(--base) 50% calc(var(--c-base) + 0.5 * c) h);
+    --c--500: Oklch(from var(--base) l c h);
+    --c--400: Oklch(from var(--base) 58% calc(var(--c-base) + 0.5 * c) h);
+    --c--300: Oklch(from var(--base) 66% calc(var(--c-base) + 0.35 * c) h);
+    --c--200: Oklch(from var(--base) 80% calc(var(--c-base) - 0 * c) h);
+    --c--100: Oklch(from var(--base) 90% calc(var(--c-base) - 0.15 * c) h);
+    --c--50: #f5f5f5 --c--white: white;
+}
