@@ -1,0 +1,20 @@
+.s-100 { height: var(--sg--100); }
+.s-125 { height: var(--sg--125); }
+.s-150 { height: var(--sg--150); }
+.s-175 { height: var(--sg--175); }
+.s-200 { height: var(--sg--200); }
+.s-225 { height: var(--sg--225); }
+.s-250 { height: var(--sg--250); }
+.s-275 { height: var(--sg--275); }
+.s-300 { height: var(--sg--300); }
+.s-325 { height: var(--sg--325); }
+.s-350 { height: var(--sg--350); }
+
+.h-screen { height: 100dvh; }
+.h-full { height: 100%; }
+.w-screen { width: 100dvw; }
+.w-full { width: 100%; }
+.w-550 { width: var(--sg--550); }
+.w-500 { width: var(--sg--500); }
+.w-450 { width: var(--sg--450); }
+.w-400 { width: var(--sg--400); }
