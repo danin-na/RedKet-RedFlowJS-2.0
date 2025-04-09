@@ -1,0 +1,13 @@
+.bg-white { background-color: var(--c--white) }
+.bg-50 { background-color: var(--c--50) }
+.bg-100 { background-color: var(--c--100) }
+.bg-200 { background-color: var(--c--200) }
+.bg-300 { background-color: var(--c--300) }
+.bg-400 { background-color: var(--c--400) }
+.bg-500 { background-color: var(--c--500) }
+.bg-600 { background-color: var(--c--600) }
+.bg-700 { background-color: var(--c--700) }
+.bg-800 { background-color: var(--c--800) }
+.bg-900 { background-color: var(--c--900) }
+.bg-950 { background-color: var(--c--950) }
+.bg-black { background-color: var(--c--black) }
