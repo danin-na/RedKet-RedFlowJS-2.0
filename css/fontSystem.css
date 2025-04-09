@@ -1,0 +1,37 @@
+.fc-white { color: var(--c--white) }
+.fc-050 { color: var(--c--050) }
+.fc-100 { color: var(--c--100) }
+.fc-200 { color: var(--c--200) }
+.fc-300 { color: var(--c--300) }
+.fc-400 { color: var(--c--400) }
+.fc-500 { color: var(--c--500) }
+.fc-600 { color: var(--c--600) }
+.fc-700 { color: var(--c--700) }
+.fc-800 { color: var(--c--800) }
+.fc-900 { color: var(--c--900) }
+.fc-950 { color: var(--c--950) }
+.fc-black { color: var(--c--black) }
+
+.fs-50 { font-size: var(--st--50); }
+.fs-75 { font-size: var(--st--75); }
+.fs-100 { font-size: var(--st--100); }
+.fs-125 { font-size: var(--st--125); }
+.fs-150 { font-size: var(--st--150); }
+.fs-175 { font-size: var(--st--175); }
+.fs-200 { font-size: var(--st--200); }
+.fs-225 { font-size: var(--st--225); }
+.fs-250 { font-size: var(--st--250); }
+.fs-275 { font-size: var(--st--275); }
+.fs-300 { font-size: var(--st--300); }
+.fs-325 { font-size: var(--st--325); }
+.fs-350 { font-size: var(--st--350); }
+
+.fw-100 { font-weight: 100; }
+.fw-200 { font-weight: 200; }
+.fw-300 { font-weight: 300; }
+.fw-400 { font-weight: 400; }
+.fw-500 { font-weight: 500; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; } 
+.fw-800 { font-weight: 800; }
+.fw-900 { font-weight: 900; }
