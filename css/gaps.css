@@ -1,0 +1,6 @@
+.g-25 { gap: var(--sg--25); }
+.g-50 { gap: var(--sg--50); }
+.g-75 { gap: var(--sg--75); }
+.g-100 { gap: var(--sg--100); }
+.g-150 { gap: var(--sg--150); }
+.g-200 { gap: var(--sg--200); }
