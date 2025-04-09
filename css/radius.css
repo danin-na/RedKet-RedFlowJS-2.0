@@ -1,0 +1,49 @@
+.r-25 { border-radius: var(--sg--25); }
+.r-50 { border-radius: var(--sg--50); }
+.r-75 { border-radius: var(--sg--75); }
+.r-100 { border-radius: var(--sg--100); }
+.r-150 { border-radius: var(--sg--150); }
+.r-200 { border-radius: var(--sg--200); }
+.r-250 { border-radius: var(--sg--250); }
+.r-300 { border-radius: var(--sg--300); }
+.r-350 { border-radius: var(--sg--350); }
+
+.rt-25  { border-top-left-radius: var(--sg--25); border-top-right-radius: var(--sg--25); }
+.rt-50  { border-top-left-radius: var(--sg--50); border-top-right-radius: var(--sg--50); }
+.rt-75  { border-top-left-radius: var(--sg--75); border-top-right-radius: var(--sg--75); }
+.rt-100 { border-top-left-radius: var(--sg--100); border-top-right-radius: var(--sg--100); }
+.rt-150 { border-top-left-radius: var(--sg--150); border-top-right-radius: var(--sg--150); }
+.rt-200 { border-top-left-radius: var(--sg--200); border-top-right-radius: var(--sg--200); }
+.rt-250 { border-top-left-radius: var(--sg--250); border-top-right-radius: var(--sg--250); }
+.rt-300 { border-top-left-radius: var(--sg--300); border-top-right-radius: var(--sg--300); }
+.rt-350 { border-top-left-radius: var(--sg--350); border-top-right-radius: var(--sg--350); }
+
+.rb-25  { border-bottom-left-radius: var(--sg--25); border-bottom-right-radius: var(--sg--25); }
+.rb-50  { border-bottom-left-radius: var(--sg--50); border-bottom-right-radius: var(--sg--50); }
+.rb-75  { border-bottom-left-radius: var(--sg--75); border-bottom-right-radius: var(--sg--75); }
+.rb-100 { border-bottom-left-radius: var(--sg--100); border-bottom-right-radius: var(--sg--100); }
+.rb-150 { border-bottom-left-radius: var(--sg--150); border-bottom-right-radius: var(--sg--150); }
+.rb-200 { border-bottom-left-radius: var(--sg--200); border-bottom-right-radius: var(--sg--200); }
+.rb-250 { border-bottom-left-radius: var(--sg--250); border-bottom-right-radius: var(--sg--250); }
+.rb-300 { border-bottom-left-radius: var(--sg--300); border-bottom-right-radius: var(--sg--300); }
+.rb-350 { border-bottom-left-radius: var(--sg--350); border-bottom-right-radius: var(--sg--350); }
+
+.rl-25  { border-top-left-radius: var(--sg--25); border-bottom-left-radius: var(--sg--25); }
+.rl-50  { border-top-left-radius: var(--sg--50); border-bottom-left-radius: var(--sg--50); }
+.rl-75  { border-top-left-radius: var(--sg--75); border-bottom-left-radius: var(--sg--75); }
+.rl-100 { border-top-left-radius: var(--sg--100); border-bottom-left-radius: var(--sg--100); }
+.rl-150 { border-top-left-radius: var(--sg--150); border-bottom-left-radius: var(--sg--150); }
+.rl-200 { border-top-left-radius: var(--sg--200); border-bottom-left-radius: var(--sg--200); }
+.rl-250 { border-top-left-radius: var(--sg--250); border-bottom-left-radius: var(--sg--250); }
+.rl-300 { border-top-left-radius: var(--sg--300); border-bottom-left-radius: var(--sg--300); }
+.rl-350 { border-top-left-radius: var(--sg--350); border-bottom-left-radius: var(--sg--350); }
+
+.rr-25  { border-top-right-radius: var(--sg--25); border-bottom-right-radius: var(--sg--25); }
+.rr-50  { border-top-right-radius: var(--sg--50); border-bottom-right-radius: var(--sg--50); }
+.rr-75  { border-top-right-radius: var(--sg--75); border-bottom-right-radius: var(--sg--75); }
+.rr-100 { border-top-right-radius: var(--sg--100); border-bottom-right-radius: var(--sg--100); }
+.rr-150 { border-top-right-radius: var(--sg--150); border-bottom-right-radius: var(--sg--150); }
+.rr-200 { border-top-right-radius: var(--sg--200); border-bottom-right-radius: var(--sg--200); }
+.rr-250 { border-top-right-radius: var(--sg--250); border-bottom-right-radius: var(--sg--250); }
+.rr-300 { border-top-right-radius: var(--sg--300); border-bottom-right-radius: var(--sg--300); }
+.rr-350 { border-top-right-radius: var(--sg--350); border-bottom-right-radius: var(--sg--350); }
